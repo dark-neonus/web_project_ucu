@@ -1,0 +1,106 @@
+.main-container {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+}
+  
+
+  .question-form {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--space-lg);
+    width: 100%;
+  }
+  
+  .form-title {
+    font-size: var(--font-2xl);
+    color: var(--text-color);
+    margin-bottom: var(--space-xl);
+    text-align: center;
+  }
+  
+  .form-group {
+    margin-bottom: var(--space-lg);
+  }
+  
+  .form-input, .form-textarea {
+    width: 100%;
+    padding: var(--space-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-md);
+    transition: border-color 0.2s ease;
+  }
+  
+  .form-input:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--link-color);
+  }
+  
+  .form-textarea {
+    min-height: 230px;
+    resize: vertical;
+  }
+  
+  .form-select {
+    width: 100%;
+    padding: var(--space-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-md);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1rem;
+  }
+  
+  .form-actions {
+    display: flex;
+    gap: var(--space-md);
+    margin-top: var(--space-xl);
+  }
+  
+  .form-button {
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-md);
+    font-weight: 500;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  
+  .form-button:hover {
+    transform: translateY(-1px);
+  }
+  
+  .button-primary {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .button-primary:hover {
+    background-color: var(--primary-hover);
+  }
+  
+  .button-secondary {
+    background-color: var(--bg-light);
+    color: var(--text-color);
+  }
+  
+  .button-secondary:hover {
+    background-color: var(--bg-light-hover);
+  }
+  
+
+  @media screen and (max-width: 720px) {
+    .main-container {
+      grid-template-columns: min-content minmax(0, 1fr);
+    }
+    
+    .left-sidebar {
+      width: auto;
+      padding: var(--space-sm);
+    }
+  }

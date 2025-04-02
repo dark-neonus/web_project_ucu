@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tribuna - User Profile</title>
+  <link rel="stylesheet" href="/src/css/main-style.css">
+  <link rel="stylesheet" href="/src/css/profile-style.css">
+
+</head>
+<body>
+  <!-- Header -->
+  <div id="header-placeholder"></div>
+
+  <!-- Main Content -->
+  <div class="page-container">
+    <!-- Sidebar Navigation -->
+    <aside class="profile-sidebar">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar"></div>
+        <h3 class="sidebar-username">Username</h3>
+        <p class="user-status">Member since Jan 2025</p>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="#profile" class="sidebar-nav-item active">
+          <span class="icon icon-user"></span>
+          <span>Profile</span>
+        </a>
+        <a href="#activity" class="sidebar-nav-item">
+          <span class="icon icon-activity"></span>
+          <span>Activity</span>
+        </a>
+        <a href="settings.html" class="sidebar-nav-item">
+          <span class="icon icon-settings"></span>
+          <span>Settings</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="profile-content">
+      <!-- Profile Header Section -->
+      <section class="profile-header">
+        <div class="cover-photo"></div>
+        <div class="profile-header-content">
+          <div class="profile-avatar-large">
+            <div class="avatar-change-overlay">
+              <span class="icon icon-camera"></span>
+            </div>
+          </div>
+          <div class="profile-header-details">
+            <h1 class="profile-name">John Doe</h1>
+            <p class="profile-bio">Software developer and forum enthusiast</p>
+            <div class="profile-stats">
+              <div class="stat">
+                <span class="stat-value">247</span>
+                <span class="stat-label">Posts</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">85</span>
+                <span class="stat-label">Topics</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">2.1k</span>
+                <span class="stat-label">Likes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Profile Overview Section -->
+      <section class="profile-section" id="profile">
+        <div class="section-header">
+          <h2>Profile Overview</h2>
+        </div>
+        
+        <div class="card-grid">
+          <div class="profile-card">
+            <div class="card-header">
+              <span class="icon icon-info"></span>
+              <h3>About</h3>
+            </div>
+            <div class="card-body">
+              <p class="profile-about">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum in fermentum turpis. 
+                Proin auctor magna sit amet ligula finibus, in condimentum sapien sodales.
+              </p>
+            </div>
+          </div>
+          
+          <div class="profile-card">
+            <div class="card-header">
+              <span class="icon icon-contact"></span>
+              <h3>Contact</h3>
+            </div>
+            <div class="card-body">
+              <ul class="profile-details-list">
+                <li>
+                  <span class="detail-label">Email:</span>
+                  <span class="detail-value">john.doe@example.com</span>
+                </li>
+                <li>
+                  <span class="detail-label">Website:</span>
+                  <span class="detail-value">johndoe.dev</span>
+                </li>
+                <li>
+                  <span class="detail-label">Location:</span>
+                  <span class="detail-value">New York, USA</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Activity Section -->
+      <section class="profile-section" id="activity">
+        <div class="section-header">
+          <h2>Recent Activity</h2>
+        </div>
+        
+        <div class="activity-tabs">
+          <button class="tab-button active" data-tab="posts">Recent Posts</button>
+          <button class="tab-button" data-tab="viewed">Recent Events</button>
+        </div>
+        
+        <div class="tab-content active" id="posts-tab">
+           <!-- Content -->
+          <button class="btn btn-load-more">Load More</button>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="/src/js/include.js"></script>
+</body>
+</html>

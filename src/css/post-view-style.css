@@ -1,0 +1,204 @@
+/* Question View Styles */
+
+/* Main question container */
+
+.main-container {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    width: 100%;
+    background-color: white;
+    max-width: var(--max-content-width);
+    padding-top: var(--header-height);
+    margin: 0 auto;
+  }
+
+  /* Action buttons */
+  .event-actions,
+  .question-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .event-actions button,
+  .question-actions button {
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s, transform 0.1s;
+  }
+  
+  .vote-button {
+    background-color: #1e3a4a;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .vote-button .icon {
+    margin-right: 4px;
+  }
+  
+  /* Suggestions Section */
+  .suggestions-section {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: var(--space-sm);
+    margin: var(--space-sm);
+  }
+  
+  .section-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #666;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  
+  .suggestion-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .suggestion-input {
+    width: 100%;
+    min-height: 80px;
+    padding: 12px;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    resize: vertical;
+  }
+  
+  .suggestion-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  
+  .cancel-button {
+    background-color: #f0f0f0;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  
+  .suggest-button {
+    background-color: #1e3a4a;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* Answers Section */
+  .answers-section {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+  }
+
+  .post-footer {
+    margin-top: var(--space-sm);
+  }
+  
+  .answer-post {
+    position: relative;
+    padding-bottom: 16px;
+    padding-left: 16px;
+  }
+  
+  .answer-post::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: #e8984a;
+    border-radius: 2px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .answer-content {
+    padding-left: 16px;
+    margin: 16px 0;
+    line-height: 1.6;
+  }
+  
+  .answer-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 16px;
+  }
+  
+  .answer-actions {
+    display: flex;
+    gap: 16px;
+  }
+  
+  .upvote-button,
+  .downvote-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .answer-reply {
+    display: flex;
+    gap: 16px;
+  }
+  
+  .toggle-replies-button,
+  .reply-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #3898ec;
+  }
+  
+  .icon-thumb-up:before {
+    content: "👍";
+  }
+  
+  .icon-thumb-down:before {
+    content: "👎";
+  }
+
+  @media screen and (max-width: 720px) {
+    .main-container {
+      grid-template-columns: min-content minmax(0, 1fr);
+    }
+    
+    .left-sidebar {
+      width: auto;
+      padding: var(--space-sm);
+    }
+  }

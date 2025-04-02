@@ -1,0 +1,9 @@
+FastAPI
+SQLModel
+pydantic
+uvicorn
+bcrypt
+python-jose
+sqlalchemy
+databases
+email-validator

@@ -10,14 +10,33 @@
 </head>
 <body>
   <!-- Header -->
-  <div id="header-placeholder"></div>
+  <!-- <div id="header-placeholder"></div> -->
+
+  <header>
+    <div class="header-container">
+      <div class="logo" onclick="window.location.href='home-page.html'">Tribuna</div>
+      <div class="main-nav">
+        <div class="nav-links">
+          <button onclick="window.location.href='forum-page.html?content=questions'">Forum</button>
+          <button onclick="window.location.href='forum-page.html?content=events'">Events</button>
+        </div>
+        <div class="auth-links">
+          <a href="/src/pages/login-page.html" class="auth-button login-button">
+            <span class="icon icon-login"></span>
+            <span>Login</span>
+          </a>
+          <a href="/src/pages/registration-page.html" class="auth-button register-button">
+            <span class="icon icon-register"></span>
+            <span>Register</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
 
   <!-- Main Content -->
   <div class="main-container">
     <!-- Left Sidebar -->
-
-    <!-- <div id="left-sidebar-placeholder"></div> -->
-
     <aside class="left-sidebar">
       <div class="search-container">
         <span class="icon icon-search search-icon"></span>
@@ -26,7 +45,7 @@
       
       <div class="menu-section">
         <p class="menu-title">MENU</p>
-        <div class="menu-item active" onclick="window.location.href='forum-page.html?content=events'">
+        <div class="menu-item" onclick="window.location.href='forum-page.html?content=questions'">
           <span class="menu-icon">≡</span>
           <span >Questions</span>
         </div>
@@ -53,20 +72,20 @@
         <span>Ask a question</span>
       </button>
     </aside>
-
+    
     <!-- Main Content Area -->
     <main class="main-content">
       <div class="question-form">
-        <h2 class="form-title">Write new question</h2>
-        
+        <h2 class="form-title">Ask a New Question</h2>
+       
         <div class="form-group">
           <input type="text" class="form-input" placeholder="Type title">
         </div>
-        
+       
         <div class="form-group">
-          <textarea class="form-textarea" placeholder="Type your question"></textarea>
+          <textarea class="form-textarea" placeholder="Type more specific information"></textarea>
         </div>
-        
+       
         <div class="form-group">
           <select class="form-select">
             <option value="" disabled selected>Choose category</option>
@@ -76,7 +95,7 @@
             <option value="support">Support</option>
           </select>
         </div>
-        
+       
         <div class="form-actions">
           <button class="form-button button-secondary">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -86,13 +105,13 @@
             </svg>
             <span>Add Image</span>
           </button>
-          
+         
           <button class="form-button button-primary">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M22 2v16h-16l16-16z"></path>
               <path d="M2 22v-16h16l-16 16z"></path>
             </svg>
-            <span>Submit Question</span>
+            <span>Post Question</span>
           </button>
         </div>
       </div>
@@ -100,6 +119,6 @@
   </div>
   <!-- Script -->
   <script src="/src/js/include.js"></script>
-  <script src="/src/js/forum-code.js"></script>
+  <script src="/src/js/new-post-code.js"></script>
 </body>
 </html>

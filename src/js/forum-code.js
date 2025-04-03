@@ -6,84 +6,47 @@ document.addEventListener('DOMContentLoaded', function() {
   const askButton = document.querySelector('.ask-button');
   const menuItems = document.querySelectorAll('.menu-item');
   
-  // Form elements
-  const questionForm = document.querySelector('.question-form');
-  const formTitle = document.querySelector('.form-input');
-  const formContent = document.querySelector('.form-textarea');
-  const formCategory = document.querySelector('.form-select');
-  const formSubmitButton = document.querySelector('.button-primary');
-  
   // Current active content type and tag filter
   let activeContentType = postsContainer ? 
     (postsContainer.getAttribute('data-content-type') || 'questions') : 
     'questions';
   let currentTagFilter = null;
-  let currentPage = window.location.pathname.includes('new-question') ? 'new-question' : 'forum';
   
-  // Connect "Ask a question" button to the question form page
+  // Determine current page based on URL path
+  const currentPath = window.location.pathname;
+  const currentPage = currentPath.includes('new-post-page.html') ? 'new-question' : 
+                     (currentPath.includes('forum-page.html') ? 'forum' : 'other');
+  
+  // Connect "Ask a question" or "Create an event" button to the appropriate form page
   if (askButton) {
     askButton.addEventListener('click', function() {
-      window.location.href = '/src/pages/new-post-page.html';
+      // Determine which content type is active
+      const contentType = activeContentType || 'questions';
+      window.location.href = '/src/pages/new-post-page.html?type=' + contentType;
     });
   }
   
-  // Submit question form
-  if (formSubmitButton) {
-    formSubmitButton.addEventListener('click', function(e) {
-      e.preventDefault();
-      
-      // Validate form
-      if (!formTitle.value.trim()) {
-        alert('Please enter a title for your question');
-        return;
+  // Update ask button text based on content type
+  function updateAskButtonText(contentType) {
+    if (askButton) {
+      const askButtonText = askButton.querySelector('span:last-child');
+      if (askButtonText) {
+        askButtonText.textContent = contentType === 'events' ? 'Create an event' : 'Ask a question';
       }
-      
-      if (!formContent.value.trim()) {
-        alert('Please enter content for your question');
-        return;
-      }
-      
-      if (!formCategory.value || formCategory.value === '') {
-        alert('Please select a category');
-        return;
-      }
-      
-      // Create question object
-      const newQuestion = {
-        title: formTitle.value.trim(),
-        content: formContent.value.trim(),
-        tag: formCategory.value,
-        username: 'Anonymous User', // Default username for non-logged in users
-        timestamp: new Date().toISOString(),
-        timeAgo: 'Just now',
-        views: 0,
-        comments: 0,
-        votes: 0,
-        closed: false
-      };
-      
-      // In a real application, you would send this to a server
-      console.log('New question submitted:', newQuestion);
-      
-      // Save to localStorage for demo purposes
-      saveNewQuestion(newQuestion);
-      
-      // Redirect back to the forum page
-      alert('Your question has been submitted successfully!');
-      window.location.href = '/src/pages/forum-page.html';
-    });
+    }
   }
   
-  // Function to save a new question to localStorage
-  function saveNewQuestion(question) {
-    // Get existing questions
-    let questions = JSON.parse(localStorage.getItem('forumQuestions')) || [];
-    
-    // Add new question
-    questions.unshift(question); // Add to beginning
-    
-    // Save back to localStorage
-    localStorage.setItem('forumQuestions', JSON.stringify(questions));
+  // Update menu items based on content type
+  function updateMenuItems(contentType) {
+    menuItems.forEach(item => {
+      const itemText = item.querySelector('span:last-child').textContent.trim();
+      item.classList.remove('active');
+      
+      if ((contentType === 'questions' && itemText === 'Questions') ||
+          (contentType === 'events' && itemText === 'Events')) {
+        item.classList.add('active');
+      }
+    });
   }
   
   // Function to load questions including those from localStorage
@@ -100,13 +63,14 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Could not fetch from server, using local data only');
       }
       
-      // Get locally stored questions
+      // Get locally stored questions and events
       const localQuestions = JSON.parse(localStorage.getItem('forumQuestions')) || [];
+      const localEvents = JSON.parse(localStorage.getItem('forumEvents')) || [];
       
       // Combine server and local data
       return {
         questions: [...localQuestions, ...serverData.questions],
-        events: serverData.events
+        events: [...localEvents, ...serverData.events]
       };
     } catch (error) {
       console.error('Error fetching forum data:', error);
@@ -221,70 +185,69 @@ document.addEventListener('DOMContentLoaded', function() {
           filterPostsByTag(tag);
         });
       });
+      
+      makePostsClickable();
     } catch (error) {
       console.error('Error rendering posts:', error);
       postsContainer.innerHTML = '<div class="error-state">Failed to load content</div>';
     }
-
-    makePostsClickable();
   }
 
-  // Update the makePostsClickable function in forum-page.js to handle both questions and events
-
-function makePostsClickable() {
-  const posts = document.querySelectorAll('.post');
-  const contentType = document.querySelector('.posts-container').getAttribute('data-content-type');
-  
-  posts.forEach(post => {
-    // Make the whole post clickable except for specific elements
-    post.addEventListener('click', function(e) {
-      // Don't navigate if clicking on tag, buttons, or stats
-      if (e.target.closest('.post-tag') || 
-          e.target.closest('button') ||
-          e.target.closest('.post-stats')) {
-        return;
-      }
-      
-      // Get common post data
-      const title = post.querySelector('.post-title').textContent;
-      const content = post.querySelector('.post-excerpt')?.textContent || '';
-      const username = post.querySelector('.username').textContent;
-      const timeAgo = post.querySelector('.time').textContent;
-      const tag = post.querySelector('.post-tag').textContent;
-      const votes = post.querySelector('.post-stats .icon-arrow-up + span').textContent;
-      const views = post.querySelector('.post-stats .icon-eye + span').textContent;
-      const comments = post.querySelector('.post-stats .icon-message + span').textContent;
-      
-      // Create base post data object
-      const postData = {
-        type: contentType, // Store whether this is a question or event
-        title,
-        content,
-        username,
-        timeAgo,
-        tag,
-        votes,
-        views,
-        comments
-      };
-      
-      // Add event-specific data if this is an event
-      if (contentType === 'events') {
-        const eventDate = post.querySelector('.event-date')?.textContent || '';
-        const eventLocation = post.querySelector('.event-location')?.textContent || '';
+  // Update the makePostsClickable function to handle both questions and events
+  function makePostsClickable() {
+    const posts = document.querySelectorAll('.post');
+    const contentType = document.querySelector('.posts-container').getAttribute('data-content-type');
+    
+    posts.forEach(post => {
+      // Make the whole post clickable except for specific elements
+      post.addEventListener('click', function(e) {
+        // Don't navigate if clicking on tag, buttons, or stats
+        if (e.target.closest('.post-tag') || 
+            e.target.closest('button') ||
+            e.target.closest('.post-stats')) {
+          return;
+        }
         
-        postData.date = eventDate;
-        postData.location = eventLocation;
-      }
-      
-      // Store post data in localStorage
-      localStorage.setItem('currentPost', JSON.stringify(postData));
-      
-      // Navigate to the appropriate view page
-      window.location.href = '/src/pages/post-view-page.html'; // Using the same view page for both types
+        // Get common post data
+        const title = post.querySelector('.post-title').textContent;
+        const content = post.querySelector('.post-excerpt')?.textContent || '';
+        const username = post.querySelector('.username').textContent;
+        const timeAgo = post.querySelector('.time').textContent;
+        const tag = post.querySelector('.post-tag').textContent;
+        const votes = post.querySelector('.post-stats .icon-arrow-up + span').textContent;
+        const views = post.querySelector('.post-stats .icon-eye + span').textContent;
+        const comments = post.querySelector('.post-stats .icon-message + span').textContent;
+        
+        // Create base post data object
+        const postData = {
+          type: contentType, // Store whether this is a question or event
+          title,
+          content,
+          username,
+          timeAgo,
+          tag,
+          votes,
+          views,
+          comments
+        };
+        
+        // Add event-specific data if this is an event
+        if (contentType === 'events') {
+          const eventDate = post.querySelector('.event-date')?.textContent || '';
+          const eventLocation = post.querySelector('.event-location')?.textContent || '';
+          
+          postData.date = eventDate;
+          postData.location = eventLocation;
+        }
+        
+        // Store post data in localStorage
+        localStorage.setItem('currentPost', JSON.stringify(postData));
+        
+        // Navigate to the appropriate view page
+        window.location.href = `/src/pages/post-view-page.html?type=${contentType}` // Using the same view page for both types
+      });
     });
-  });
-}
+  }
   
   // Function to filter posts by tag
   function filterPostsByTag(tag) {
@@ -340,24 +303,13 @@ function makePostsClickable() {
     }
     
     // Update nav buttons in header
-    navButtons.forEach(button => {
-      button.classList.remove('active');
-      if ((contentType === 'questions' && button.textContent.trim() === 'Forum') ||
-          (contentType === 'events' && button.textContent.trim() === 'Events')) {
-        button.classList.add('active');
-      }
-    });
+    updateNavButtons(contentType);
     
     // Update menu items in left sidebar
-    menuItems.forEach(item => {
-      const itemText = item.querySelector('span:last-child').textContent.trim();
-      item.classList.remove('active');
-      
-      if ((contentType === 'questions' && itemText === 'Questions') ||
-          (contentType === 'events' && itemText === 'Events')) {
-        item.classList.add('active');
-      }
-    });
+    updateMenuItems(contentType);
+    
+    // Update Ask button text
+    updateAskButtonText(contentType);
     
     // Reset filter tabs to "New"
     if (filterTabs.length > 0) {
@@ -368,14 +320,6 @@ function makePostsClickable() {
           tab.classList.add('active');
         }
       });
-    }
-    
-    // Update Ask button text
-    if (askButton) {
-      const askText = askButton.querySelector('span:last-child');
-      if (askText) {
-        askText.textContent = contentType === 'questions' ? 'Ask a question' : 'Create an event';
-      }
     }
     
     // Clear any active tag filter
@@ -391,30 +335,69 @@ function makePostsClickable() {
     }
   }
   
-  // Handle navigation between pages with header buttons
-  navButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const buttonText = this.textContent.trim();
+  // Update nav buttons based on content type
+  function updateNavButtons(contentType) {
+    navButtons.forEach(button => {
+      const buttonText = button.textContent.trim();
+      button.classList.remove('active');
       
-      if (buttonText === 'Forum') {
-        if (currentPage === 'new-question') {
-          window.location.href = '/src/pages/forum-page.html';
-        } else {
-          toggleContentType('questions');
-        }
-      } else if (buttonText === 'Events') {
-        if (currentPage === 'new-question') {
-          window.location.href = '/src/pages/forum-page.html?content=events';
-        } else {
-          toggleContentType('events');
-        }
+      if ((contentType === 'questions' && buttonText === 'Forum') ||
+          (contentType === 'events' && buttonText === 'Events')) {
+        button.classList.add('active');
       }
-      
-      // Update active state in nav buttons
-      navButtons.forEach(btn => btn.classList.remove('active'));
-      this.classList.add('active');
     });
-  });
+  }
+  
+  // Fix for header navigation buttons
+  function setupHeaderNavigation() {
+    // Select all header navigation buttons
+    const headerNavButtons = document.querySelectorAll('.nav-links button');
+    
+    headerNavButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const buttonText = this.textContent.trim();
+        
+        // Remove the active class from all buttons
+        headerNavButtons.forEach(btn => btn.classList.remove('active'));
+        
+        // Add active class to the clicked button
+        this.classList.add('active');
+        
+        // Handle navigation based on button text
+        if (buttonText === 'Forum') {
+          // If we're not already on the forum page, navigate there
+          if (!window.location.href.includes('forum-page.html') || 
+              window.location.href.includes('content=events')) {
+            window.location.href = '/src/pages/forum-page.html?content=questions';
+          } else {
+            // Otherwise just update the content type
+            toggleContentType('questions');
+          }
+        } else if (buttonText === 'Events') {
+          // If we're not already on the events page, navigate there
+          if (!window.location.href.includes('forum-page.html') || 
+              !window.location.href.includes('content=events')) {
+            window.location.href = '/src/pages/forum-page.html?content=events';
+          } else {
+            // Otherwise just update the content type
+            toggleContentType('events');
+          }
+        }
+      });
+    });
+    
+    // Set the initial active state based on the current URL
+    const currentUrl = window.location.href;
+    headerNavButtons.forEach(button => {
+      const buttonText = button.textContent.trim();
+      
+      if ((buttonText === 'Forum' && 
+           (currentUrl.includes('forum-page.html') && !currentUrl.includes('content=events'))) ||
+          (buttonText === 'Events' && currentUrl.includes('content=events'))) {
+        button.classList.add('active');
+      }
+    });
+  }
   
   // Handle menu item clicks
   menuItems.forEach(item => {
@@ -467,33 +450,56 @@ function makePostsClickable() {
     });
   }
   
-  // Handle login and register buttons
-  const loginButton = document.querySelector('.login-button');
-  const registerButton = document.querySelector('.register-button');
-  
   // Handle URL parameters on page load
   function handleURLParameters() {
     const urlParams = new URLSearchParams(window.location.search);
-    const contentParam = urlParams.get('content');
     
-    if (contentParam === 'events') {
-      toggleContentType('events');
+    // Handle content type parameter for forum page
+    if (currentPage === 'forum') {
+      const contentParam = urlParams.get('content');
+      if (contentParam === 'events') {
+        toggleContentType('events');
+      } else {
+        toggleContentType('questions');
+      }
     }
-  }
-  
-  // Add image button functionality
-  const addImageButton = document.querySelector('.button-secondary');
-  if (addImageButton) {
-    addImageButton.addEventListener('click', function() {
-      alert('Image upload functionality would be implemented here');
-    });
   }
   
   // Initial setup based on current page
   handleURLParameters();
   
+  // Set up header navigation
+  setupHeaderNavigation();
+  
   // Initial render if on forum page
   if (postsContainer) {
     renderPosts(activeContentType);
+  }
+  
+  // NEW CODE: Add event listener for direct click on forum button in header
+  const forumButton = document.querySelector('.nav-links button:first-child');
+  if (forumButton) {
+    forumButton.addEventListener('click', function() {
+      // Update menu items to make Questions active in the sidebar
+      if (menuItems) {
+        menuItems.forEach(item => {
+          const itemText = item.querySelector('span:last-child').textContent.trim();
+          item.classList.remove('active');
+          
+          if (itemText === 'Questions') {
+            item.classList.add('active');
+          }
+        });
+      }
+    });
+  }
+  
+  // NEW CODE: Ensure sidebar menu items are properly set on initial page load
+  const urlParams = new URLSearchParams(window.location.search);
+  const contentParam = urlParams.get('content');
+  if (contentParam === 'events') {
+    updateMenuItems('events');
+  } else {
+    updateMenuItems('questions');
   }
 });

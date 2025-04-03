@@ -18,15 +18,15 @@
       <div class="logo" onclick="window.location.href='home-page.html'">Tribuna</div>
       <div class="main-nav">
         <div class="nav-links">
-          <button onclick="window.location.href='forum-page.html'">Forum</button>
+          <button onclick="window.location.href='forum-page.html?content=questions'">Forum</button>
           <button onclick="window.location.href='forum-page.html?content=events'">Events</button>
         </div>
         <div class="auth-links">
-          <a href="/login-page.html" class="auth-button login-button">
+          <a href="/src/pages/login-page.html" class="auth-button login-button">
             <span class="icon icon-login"></span>
             <span>Login</span>
           </a>
-          <a href="/registration-page.html" class="auth-button register-button">
+          <a href="/src/pages/registration-page.html" class="auth-button register-button">
             <span class="icon icon-register"></span>
             <span>Register</span>
           </a>
@@ -49,7 +49,7 @@
       
       <div class="menu-section">
         <p class="menu-title">MENU</p>
-        <div class="menu-item active" onclick="window.location.href='forum-page.html?content=events'">
+        <div class="menu-item" onclick="window.location.href='forum-page.html?content=questions'">
           <span class="menu-icon">≡</span>
           <span >Questions</span>
         </div>
@@ -149,7 +149,6 @@
 
   <!-- Script -->
   <script src="/src/js/include.js"></script>
-  <script src="/src/js/forum-code.js"></script>
   <script src="/src/js/post-view-code.js"></script>
 </body>
 </html>

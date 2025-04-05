@@ -86,10 +86,10 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
-    const signupLink = document.querySelector('.signup-link');
-    if (signupLink) {
-      signupLink.addEventListener('click', function() {
-        window.location.href = 'auth/register';
-      });
-    }
+    // const signupLink = document.querySelector('.signup-link');
+    // if (signupLink) {
+    //   signupLink.addEventListener('click', function() {
+    //     window.location.href = 'auth/register';
+    //   });
+    // }
   });

@@ -1,11 +1,14 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import HTMLResponse
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from server.core.database import get_db
 from .models import User
 from .schemas import UserCreate, UserResponse, UserLogin
 from server.core.security import hash_password, verify_password
+from datetime import timedelta
 from pathlib import Path
+from server.core.security import create_access_token
 
 router = APIRouter()
 
@@ -32,8 +35,6 @@ def register_page():
     # Path to the registration HTML file
     html_file_path = Path(__file__).parent.parent.parent.parent / "src/pages/registration-page.html"
 
-    print(html_file_path)
-
     # Read the HTML file content
     if html_file_path.exists():
         html_content = html_file_path.read_text(encoding="utf-8")
@@ -41,10 +42,31 @@ def register_page():
     else:
         return HTMLResponse(content="<h1>Registration page not found</h1>", status_code=404)
 
-@router.post("/login", response_model=UserResponse)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+
+@router.post("/login", response_model=dict)
 def login_user(user: UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user.email).first()
     if not db_user or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=400, detail="Invalid email or password")
 
-    return db_user
+    # Generate JWT token
+    access_token_expires = timedelta(minutes=30)  # Token expiration time
+    access_token = create_access_token(
+        data={"sub": db_user.email}, expires_delta=access_token_expires
+    )
+
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/login", response_class=HTMLResponse)
+def login_page():
+    # Path to the registration HTML file
+    html_file_path = Path(__file__).parent.parent.parent.parent / "src/pages/login-page.html"
+
+    # Read the HTML file content
+    if html_file_path.exists():
+        html_content = html_file_path.read_text(encoding="utf-8")
+        return HTMLResponse(content=html_content)
+    else:
+        return HTMLResponse(content="<h1>Login page not found</h1>", status_code=404)
+

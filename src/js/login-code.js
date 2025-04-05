@@ -63,6 +63,12 @@ document.addEventListener('DOMContentLoaded', function() {
           });
 
           if (response.ok) {
+            const data = await response.json();
+            const token = data.access_token;
+
+            // Store the token in localStorage
+            localStorage.setItem('access_token', token);
+
             alert('Login successful!');
             window.location.href = '/'; // Redirect to login page
           } else {

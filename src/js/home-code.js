@@ -3,6 +3,40 @@ document.addEventListener('DOMContentLoaded', function() {
   // Get references to UI elements
   const loginButton = document.querySelector('.login-button');
   const registerButton = document.querySelector('.register-button');
+  const logoutButton = document.querySelector('.logout-button');
+
+  function decodeToken(token) {
+    const payload = token.split('.')[1];
+    return JSON.parse(atob(payload));
+  }
+
+  // Check if the user is logged in (JWT token exists in localStorage)
+  const token = localStorage.getItem('access_token');
+  if (token) {
+    const userData = decodeToken(token);
+    console.log('Logged in user:', userData);
+  
+    // Hide login and register buttons
+    if (loginButton) loginButton.style.display = 'none';
+    if (registerButton) registerButton.style.display = 'none';
+
+    // Show logout button
+    if (logoutButton) logoutButton.style.display = 'inline-block';
+
+    // Add logout functionality
+    logoutButton.addEventListener('click', function () {
+      localStorage.removeItem('access_token'); // Remove the token
+      alert('You have been logged out.');
+      window.location.reload(); // Reload the page to update the UI
+    });
+  } else {
+    // If not logged in, ensure login and register buttons are visible
+    if (loginButton) loginButton.style.display = 'inline-block';
+    if (registerButton) registerButton.style.display = 'inline-block';
+
+    // Hide logout button
+    if (logoutButton) logoutButton.style.display = 'none';
+  }
   const searchInput = document.querySelector('.search-input');
   const featureButtons = document.querySelectorAll('.feature-button');
 

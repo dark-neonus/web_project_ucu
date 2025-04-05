@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, JSON
 from uuid import uuid4, UUID
 from typing import Optional, List
 from enum import Enum
@@ -13,4 +13,4 @@ class User(SQLModel, table=True):
     last_name: str = Field(index=True, unique=False, max_length=50)
     email: str = Field(index=True, unique=True)
     hashed_password: str
-    roles: List[Role] = Field(default=[Role.USER])
+    role: Role = Field(default=Role.USER)

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from server.apps.authentication.routes import router as auth_router
 from server.apps.events.routes import router as events_router
 from server.apps.forum.routes import router as forum_router
@@ -21,6 +22,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount the static files directory
+app.mount("/src", StaticFiles(directory="src"), name="static")
 
 app.include_router(auth_router, prefix="/auth", tags=["authentication"])
 app.include_router(events_router, prefix="/events", tags=["events"])

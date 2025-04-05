@@ -36,34 +36,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form validation
     const form = document.querySelector('form');
     if (form) {
-      form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Get form inputs
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        
-        // Basic validation
-        if (!email || !password) {
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault(); // Prevent default form submission
+
+        // Collect form data
+        const formData = {
+          first_name: document.getElementById('first_name').value,
+          last_name: document.getElementById('last_name').value,
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value,
+        };
+
+        // Validate form data
+        if (!formData.first_name || !formData.last_name || !formData.email || !formData.password) {
           alert('Please fill in all fields');
           return;
         }
-        
-        if (!email.includes('@')) {
-          alert('Please enter a valid email address');
-          return;
+
+
+        // Send POST request to the backend
+        try {
+          const response = await fetch('/auth/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+          });
+
+          if (response.ok) {
+            alert('Registration successful!');
+            window.location.href = '/auth/login'; // Redirect to login page
+          } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.detail}`);
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('An error occurred. Please try again.');
         }
-        
-        // Additional validation for registration page
-        const username = document.getElementById('username');
-        if (username && !username.value) {
-          alert('Please enter a username');
-          return;
-        }
-        
-        // Submit the form if validation passes
-        console.log('Form submitted successfully');
-        // form.submit();
       });
     }
     
@@ -71,14 +82,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginLink = document.querySelector('.login-link');
     if (loginLink) {
       loginLink.addEventListener('click', function() {
-        window.location.href = 'login-page.html';
+        window.location.href = 'auth/login';
       });
     }
     
     const signupLink = document.querySelector('.signup-link');
     if (signupLink) {
       signupLink.addEventListener('click', function() {
-        window.location.href = 'registration-page.html';
+        window.location.href = 'auth/register';
       });
     }
   });

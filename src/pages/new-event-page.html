@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tribuna Forum - New Event</title>
+  <link rel="stylesheet" href="/src/css/main-style.css">
+  <link rel="stylesheet" href="/src/css/forum-style.css">
+  <link rel="stylesheet" href="/src/css/new-post-style.css">
+</head>
+<body>
+  <!-- Header -->
+  <div id="header-placeholder"></div>
+
+  <!-- Main Content -->
+  <div class="main-container">
+    <!-- Left Sidebar -->
+    <aside class="left-sidebar">
+      <div class="search-container">
+        <span class="icon icon-search search-icon"></span>
+        <input type="text" class="search-input" placeholder="Search">
+      </div>
+      
+      <div class="menu-section">
+        <p class="menu-title">MENU</p>
+        <div class="menu-item" onclick="window.location.href='forum-page.html?content=questions'">
+          <span class="menu-icon">≡</span>
+          <span>Questions</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='forum-page.html?content=events'">
+          <span class="menu-icon">≡</span>
+          <span>Events</span>
+        </div>
+      </div>
+      
+      <div class="menu-section">
+        <p class="menu-title">PERSONAL NAVIGATOR</p>
+        <div class="menu-item">
+          <span class="menu-icon">◯</span>
+          <span>Your questions</span>
+        </div>
+        <div class="menu-item">
+          <span class="menu-icon">◯</span>
+          <span>Your answers</span>
+        </div>
+      </div>
+      
+      <!-- <div class="button-container">
+        <button class="ask-button" onclick="window.location.href='create-question-page.html'">
+          <span>+</span>
+          <span>Ask a question</span>
+        </button>
+        <button class="create-event-button active">
+          <span>+</span>
+          <span>Create an event</span>
+        </button>
+      </div> -->
+    </aside>
+    
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <div class="question-form">
+        <h2 class="form-title">Create a New Event</h2>
+       
+        <div class="form-group">
+          <input type="text" class="form-input" placeholder="Event title">
+        </div>
+       
+        <div class="form-group">
+          <textarea class="form-textarea" placeholder="Event description and details"></textarea>
+        </div>
+        
+        <div class="event-form-fields">
+          <div class="form-group">
+            <label for="event-date">Event Date</label>
+            <input type="date" id="event-date" class="form-input event-date-input" required>
+          </div>
+          <div class="form-group">
+            <label for="event-location">Event Location</label>
+            <input type="text" id="event-location" class="form-input event-location-input" placeholder="Enter event location" required>
+          </div>
+        </div>
+       
+        <div class="form-group">
+          <select class="form-select">
+            <option value="" disabled selected>Choose category</option>
+            <option value="society">Society</option>
+            <option value="health">Health</option>
+            <option value="employment">Employment</option>
+            <option value="support">Support</option>
+          </select>
+        </div>
+       
+        <div class="form-actions">
+          <button class="form-button button-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <span>Add Image</span>
+          </button>
+         
+          <button class="form-button button-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 2v16h-16l16-16z"></path>
+              <path d="M2 22v-16h16l-16 16z"></path>
+            </svg>
+            <span>Post Event</span>
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+  <!-- Script -->
+  <script src="/src/js/auth.js"></script>
+  <script src="/src/js/include.js"></script>
+  <script src="/src/js/new-event-code.js"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tribuna Forum - New Post</title>
+  <title>Tribuna Forum - New Question</title>
   <link rel="stylesheet" href="/src/css/main-style.css">
   <link rel="stylesheet" href="/src/css/forum-style.css">
   <link rel="stylesheet" href="/src/css/new-post-style.css">
@@ -11,28 +11,6 @@
 <body>
   <!-- Header -->
   <div id="header-placeholder"></div>
-
-  <!-- <header>
-    <div class="header-container">
-      <div class="logo" onclick="window.location.href='home-page.html'">Tribuna</div>
-      <div class="main-nav">
-        <div class="nav-links">
-          <button onclick="window.location.href='forum-page.html?content=questions'">Forum</button>
-          <button onclick="window.location.href='forum-page.html?content=events'">Events</button>
-        </div>
-        <div class="auth-links">
-          <a href="/src/pages/login-page.html" class="auth-button login-button">
-            <span class="icon icon-login"></span>
-            <span>Login</span>
-          </a>
-          <a href="/src/pages/registration-page.html" class="auth-button register-button">
-            <span class="icon icon-register"></span>
-            <span>Register</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </header> -->
 
   <!-- Main Content -->
   <div class="main-container">
@@ -47,7 +25,7 @@
         <p class="menu-title">MENU</p>
         <div class="menu-item" onclick="window.location.href='forum-page.html?content=questions'">
           <span class="menu-icon">≡</span>
-          <span >Questions</span>
+          <span>Questions</span>
         </div>
         <div class="menu-item" onclick="window.location.href='forum-page.html?content=events'">
           <span class="menu-icon">≡</span>
@@ -67,10 +45,16 @@
         </div>
       </div>
       
-      <button class="ask-button">
-        <span>+</span>
-        <span>Ask a question</span>
-      </button>
+      <!-- <div class="button-container">
+        <button class="ask-button active">
+          <span>+</span>
+          <span>Ask a question</span>
+        </button>
+        <button class="create-event-button" onclick="window.location.href='create-event-page.html'">
+          <span>+</span>
+          <span>Create an event</span>
+        </button>
+      </div> -->
     </aside>
     
     <!-- Main Content Area -->
@@ -120,6 +104,6 @@
   <!-- Script -->
   <script src="/src/js/auth.js"></script>
   <script src="/src/js/include.js"></script>
-  <script src="/src/js/new-post-code.js"></script>
+  <script src="/src/js/new-question-code.js"></script>
 </body>
 </html>

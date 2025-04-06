@@ -41,7 +41,7 @@ fastapi-backend
 
 3. **Run the application**:
    ```
-   uvicorn backend.main:app --reload
+   uvicorn server.main:app --reload
    ```
 
 ## API Documentation

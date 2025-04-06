@@ -7,3 +7,6 @@ python-jose
 sqlalchemy
 databases
 email-validator
+passlib
+dotenv
+pydantic

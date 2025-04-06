@@ -21,8 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (registerButton) registerButton.style.display = 'none';
 
     // Show logout button
-    if (logoutButton) logoutButton.style.display = 'inline-block';
-
     // Add logout functionality
     logoutButton.addEventListener('click', function () {
       localStorage.removeItem('access_token'); // Remove the token
@@ -31,8 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   } else {
     // If not logged in, ensure login and register buttons are visible
-    if (loginButton) loginButton.style.display = 'inline-block';
-    if (registerButton) registerButton.style.display = 'inline-block';
 
     // Hide logout button
     if (logoutButton) logoutButton.style.display = 'none';

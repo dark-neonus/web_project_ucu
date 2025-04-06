@@ -20,6 +20,21 @@ fastapi-backend
 └── README.md               # Overall project documentation
 ```
 
+## Site structure
+```
+.
+└── / (home_page)
+    ├── auth
+    │   ├── login
+    │   └── register
+    ├── events (events_list)
+    │   ├── create_event
+    │   └── view_event
+    └── forum (posts_list)
+        ├── create_post
+        └── view_post
+```
+
 ## Features
 
 - **User Authentication**: Users can register and log in to the application.

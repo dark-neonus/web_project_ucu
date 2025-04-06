@@ -10,15 +10,13 @@
 <body>
 
   <!-- Header -->
-  <div id="header-placeholder"></div>
-
-  <!-- <header>
+  <header>
     <div class="header-container">
-      <div class="logo" onclick="window.location.href='home-page.html'">Tribuna</div>
+      <div class="logo" onclick="window.location.href='/'">Tribuna</div>
       <div class="main-nav">
         <div class="nav-links">
-          <button onclick="window.location.href='forum-page.html?content=questions'">Forum</button>
-          <button onclick="window.location.href='forum-page.html?content=events'">Events</button>
+          <button onclick="window.location.href='/forum'">Forum</button>
+          <button onclick="window.location.href='/events'">Events</button>
         </div>
         <div class="auth-links">
           <a href="/auth/login" class="auth-button login-button">
@@ -29,14 +27,10 @@
             <span class="icon icon-register"></span>
             <span>Register</span>
           </a>
-          <a href="#" class="auth-button logout-button" style="display: none;">
-            <span class="icon icon-logout"></span>
-            <span>Logout</span>
-          </a>
         </div>
       </div>
     </div>
-  </header> -->
+  </header>
 
   <!-- Hero Banner -->
   <section class="hero-banner">
@@ -66,7 +60,7 @@
         <h2>Q&A</h2>
         <p>Find answers and ask questions.</p>
         <p>Experts and other users will help you</p>
-        <button class="feature-button" onclick="window.location.href='forum-page.html'">Browse Questions</button>
+        <button class="feature-button" onclick="window.location.href='/forum/'">Browse Questions</button>
       </div>
 
       <!-- Events Feature -->
@@ -80,7 +74,7 @@
         <h2>Events</h2>
         <p>Find answers and ask questions.</p>
         <p>Experts and other users will help you</p>
-        <button class="feature-button" onclick="window.location.href='forum-page.html?content=events'">Browse Events</button>
+        <button class="feature-button" onclick="window.location.href='/events/'">Browse Events</button>
       </div>
 
       <!-- Features Feature -->
@@ -107,7 +101,7 @@
 
   <!-- Script -->
   <script src="/src/js/auth.js"></script>
-  <script src="/src/js/include.js"></script>
   <script src="/src/js/home-code.js"></script>
+  <script src="/src/js/header.js"></script>
 </body>
 </html>

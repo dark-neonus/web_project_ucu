@@ -9,7 +9,27 @@
 </head>
 <body>
   <!-- Header -->
-  <div id="header-placeholder"></div>
+  <header>
+    <div class="header-container">
+      <div class="logo" onclick="window.location.href='/'">Tribuna</div>
+      <div class="main-nav">
+        <div class="nav-links">
+          <button onclick="window.location.href='/forum'">Forum</button>
+          <button class = "active" onclick="window.location.href='/events/'">Events</button>
+        </div>
+        <div class="auth-links">
+          <a href="/auth/login" class="auth-button login-button">
+            <span class="icon icon-login"></span>
+            <span>Login</span>
+          </a>
+          <a href="/auth/register" class="auth-button register-button">
+            <span class="icon icon-register"></span>
+            <span>Register</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
 
   <!-- Main Content -->
   <div class="main-container">
@@ -22,11 +42,11 @@
       
       <div class="menu-section">
         <p class="menu-title">MENU</p>
-        <div class="menu-item">
+        <div class="menu-item" onclick="window.location.href='/forum'">
           <span class="menu-icon">≡</span>
           <span>Questions</span>
         </div>
-        <div class="menu-item active">
+        <div class="menu-item  active" onclick="window.location.href='/events'">
           <span class="menu-icon">≡</span>
           <span>Events</span>
         </div>
@@ -35,19 +55,15 @@
         <p class="menu-title">PERSONAL NAVIGATOR</p>
         <div class="menu-item">
           <span class="menu-icon">◯</span>
-          <span>Your questions</span>
-        </div>
-        <div class="menu-item">
-          <span class="menu-icon">◯</span>
-          <span>Your answers</span>
+          <span>Your events</span>
         </div>
       </div>
       
-      <button class="ask-button">
+      <button class="ask-button" onclick="window.location.href='/events/create_event'">
         <span>+</span>
-        <span>Create an event</span>
+        <span>Create a new event</span>
       </button>
-    </aside>
+   </aside>
 
     <!-- Main Content Area -->
     <main class="main-content">
@@ -113,8 +129,8 @@
   </div>
 
   <!-- Script -->
-  <script src="/src/js/include.js" defer></script>
   <script src="/src/js/auth.js"></script>
+  <script src="/src/js/header.js"></script>
   <script src="/src/js/forum-events-code.js" defer></script>
 </body>
 </html>

@@ -69,6 +69,7 @@
     --transition-slow: 350ms ease-in-out;
   }
   
+  
   /* ======= Reset and Base Styles ======= */
   * {
     margin: 0;
@@ -234,6 +235,19 @@
   .user-dropdown {
     position: relative;
   }
+
+  .profile-link {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+ }
+
+ .profile-link:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+ }
   
   .profile-trigger {
     display: flex;
@@ -264,7 +278,14 @@
     height: 100%;
     object-fit: cover;
   }
-  
+
+  .dropdown-header {
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+  }
+
   .dropdown-menu {
     position: absolute;
     top: 100%;
@@ -300,6 +321,31 @@
     background-color: var(--primary-color);
     color: var(--text-light);
   }
+
+                      
+  .dropdown-divider {
+    height: 1px;
+    background-color: #e9ecef;
+    margin: 0;
+}
+
+    
+  .logout-dropdown-item {
+    color: #d33827;
+  }
+
+
+  .logout-dropdown-item:hover {
+    color: #ff1900;
+    font-weight: 500;
+  }
+                      
+  .view-profile-link {
+    font-size: 12px;
+    color: #2F4858;
+    cursor: pointer;
+ }
+
 
    
   .icon-login {
@@ -399,16 +445,18 @@
     color: var(--primary-color);
   }
   
-  .register-button {
+  .register-button, .logout-button {
     background-color: var(--primary-color);
     color: white;
   }
   
-  .register-button:hover {
+  .register-button:hover,  .logout-button  {
     background-color: var(--primary-dark);
     color: white;
   }
   
+ 
+
   /* ======= Layout Containers ======= */
   .page-container {
     display: flex;
@@ -600,6 +648,34 @@
     align-items: center;
     gap: var(--space-xs);
     font-size: var(--font-sm);
+  }
+
+  .profile-container {
+    position: relative;
+  }
+  
+  .profile-picture {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  
+  .profile-dropdown {
+    position: absolute;
+    right: 0;
+    top: 45px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    display: none;
+    z-index: 1000;
+    overflow: hidden;
+}
+  
+  .profile-container.active .profile-dropdown {
+    display: block;
   }
   
   .icon-calendar,

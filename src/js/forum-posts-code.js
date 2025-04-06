@@ -1,32 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Get references to key elements
   const postsContainer = document.querySelector('.posts-container');
-  const navButtons = document.querySelectorAll('.nav-links button');
   const filterTabs = document.querySelectorAll('.filter-tab');
-  const askButton = document.querySelector('.ask-button');
   const menuItems = document.querySelectorAll('.menu-item');
   
   // Current tag filter
   let currentTagFilter = null;
-  
-  // Connect "Ask a question" button to the form page
-  if (askButton) {
-    askButton.addEventListener('click', function() {
-      window.location.href = '/src/pages/new-post-page.html?type=questions';
-    });
-  }
-  
-  // Set up menu item active states
-  function updateMenuItems() {
-    menuItems.forEach(item => {
-      const itemText = item.querySelector('span:last-child').textContent.trim();
-      if (itemText === 'Questions') {
-        item.classList.add('active');
-      } else {
-        item.classList.remove('active');
-      }
-    });
-  }
   
   // Function to load questions including those from localStorage
   async function fetchForumData() {
@@ -198,9 +177,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Store post data in localStorage
         localStorage.setItem('currentPost', JSON.stringify(postData));
-        
-        // Navigate to view page
-        window.location.href = `/src/pages/post-view-page.html?type=questions`;
       });
     });
   }
@@ -239,27 +215,6 @@ document.addEventListener('DOMContentLoaded', function() {
     renderPosts();
   }
   
-  // Handle menu item clicks
-  menuItems.forEach(item => {
-    item.addEventListener('click', function() {
-      const itemText = this.querySelector('span:last-child').textContent.trim();
-      
-      if (itemText === 'Questions') {
-        // Already on questions page, just refresh
-      } else if (itemText === 'Events') {
-        // Navigate to events page
-        window.location.href = '/src/pages/events-page.html';
-      } else if (itemText === 'Your questions' || itemText === 'Your answers') {
-        // These would typically filter based on user login
-        alert('This feature requires you to be logged in.');
-      }
-      
-      // Update active state for menu items
-      menuItems.forEach(mi => mi.classList.remove('active'));
-      this.classList.add('active');
-    });
-  });
-  
   // Handle filter tab clicks
   if (filterTabs.length > 0) {
     filterTabs.forEach(tab => {
@@ -271,44 +226,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  
-  // Set up header navigation
-  function setupHeaderNavigation() {
-    // Select all header navigation buttons
-    const headerNavButtons = document.querySelectorAll('.nav-links button');
-    
-    headerNavButtons.forEach(button => {
-      button.addEventListener('click', function() {
-        const buttonText = this.textContent.trim();
-        
-        // Remove the active class from all buttons
-        headerNavButtons.forEach(btn => btn.classList.remove('active'));
-        
-        // Add active class to the clicked button
-        this.classList.add('active');
-        
-        // Handle navigation based on button text
-        if (buttonText === 'Forum') {
-          // Already on forum page, no action needed
-        } else if (buttonText === 'Events') {
-          // Navigate to events page
-          window.location.href = '/src/pages/events-page.html';
-        }
-      });
-    });
-    
-    // Set the initial active state
-    headerNavButtons.forEach(button => {
-      const buttonText = button.textContent.trim();
-      if (buttonText === 'Forum') {
-        button.classList.add('active');
-      }
-    });
-  }
-  
-  // Initial setup
-  updateMenuItems();
-  setupHeaderNavigation();
   
   // Initial render
   if (postsContainer) {

@@ -10,7 +10,27 @@
 </head>
 <body>
   <!-- Header -->
-  <div id="header-placeholder"></div>
+  <header>
+    <div class="header-container">
+      <div class="logo" onclick="window.location.href='/'">Tribuna</div>
+      <div class="main-nav">
+        <div class="nav-links">
+          <button onclick="window.location.href='/forum'">Forum</button>
+          <button onclick="window.location.href='/events'">Events</button>
+        </div>
+        <div class="auth-links">
+          <a href="/auth/login" class="auth-button login-button">
+            <span class="icon icon-login"></span>
+            <span>Login</span>
+          </a>
+          <a href="/auth/register" class="auth-button register-button">
+            <span class="icon icon-register"></span>
+            <span>Register</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
 
   <!-- Main Content -->
   <div class="main-container">
@@ -23,33 +43,28 @@
       
       <div class="menu-section">
         <p class="menu-title">MENU</p>
-        <div class="menu-item" onclick="window.location.href='forum-page.html?content=questions'">
+        <div class="menu-item" onclick="window.location.href='/forum'">
           <span class="menu-icon">≡</span>
           <span>Questions</span>
         </div>
-        <div class="menu-item" onclick="window.location.href='forum-page.html?content=events'">
+        <div class="menu-item" onclick="window.location.href='/events'">
           <span class="menu-icon">≡</span>
           <span>Events</span>
         </div>
       </div>
-      
       <div class="menu-section">
         <p class="menu-title">PERSONAL NAVIGATOR</p>
         <div class="menu-item">
           <span class="menu-icon">◯</span>
-          <span>Your questions</span>
-        </div>
-        <div class="menu-item">
-          <span class="menu-icon">◯</span>
-          <span>Your answers</span>
+          <span>Your events</span>
         </div>
       </div>
       
-      <button class="ask-button">
+      <button class="ask-button" onclick="window.location.href='/events/create_event'">
         <span>+</span>
-        <span>Ask a question</span>
+        <span>Create a new event</span>
       </button>
-    </aside>
+  </aside>
 
     <!-- Main Content Area -->
     <main class="main-content event-view">
@@ -74,37 +89,12 @@
           </div>
         </div>
       </div>
-      
-      <!-- Participants Section -->
-      <div class="participants-section">
-        <h2 class="section-title">Participants</h2>
-        <div class="participants-list">
-          <div class="participant">
-            <div class="avatar">
-              <img src="https://via.placeholder.com/40" alt="User avatar">
-            </div>
-            <div class="participant-info">
-              <p class="username">John Doe</p>
-              <p class="joined-date">Joined on 10 Nov 2020</p>
-            </div>
-          </div>
-          <div class="participant">
-            <div class="avatar">
-              <img src="https://via.placeholder.com/40" alt="User avatar">
-            </div>
-            <div class="participant-info">
-              <p class="username">Jane Smith</p>
-              <p class="joined-date">Joined on 11 Nov 2020</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </main>
   </div>
 
   <!-- Script -->
   <script src="/src/js/auth.js"></script>
-  <script src="/src/js/include.js"></script>
-  <script src="/src/js/event-view-code.js"></script>
+  <script src="/src/js/header.js"></script>
+  <!-- <script src="/src/js/event-view-code.js"></script> -->
 </body>
 </html>

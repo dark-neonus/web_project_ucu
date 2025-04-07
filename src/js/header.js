@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Get reference to header container
     const headerContainer = document.querySelector('.header-container');
     
     // Handle authentication state
@@ -68,9 +67,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 navContainer.appendChild(profileContainer);
                 
-                // Add CSS styles for new profile elements
-                const style = document.createElement('style');
-                
                 // Add click event to toggle dropdown
                 const profileLink = profileContainer.querySelector('.profile-link');
                 if (profileLink) {
@@ -110,7 +106,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Initialize header
     handleAuthState();
     
     // Close dropdown when clicking outside
@@ -120,8 +115,4 @@ document.addEventListener('DOMContentLoaded', function() {
             profileContainer.classList.remove('active');
         }
     });
-    
-    // For debugging, you can add:
-    console.log('Auth state handler initialized');
-    console.log('Token exists:', !!localStorage.getItem('access_token'));
 });

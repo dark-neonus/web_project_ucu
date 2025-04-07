@@ -81,19 +81,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     }
-    
-    // Navigation links
-    // const loginLink = document.querySelector('.login-link');
-    // if (loginLink) {
-    //   loginLink.addEventListener('click', function() {
-    //     window.location.href = 'auth/login';
-    //   });
-    // }
-    
-    const signupLink = document.querySelector('.signup-link');
-    if (signupLink) {
-      signupLink.addEventListener('click', function() {
-        window.location.href = 'auth/register';
-      });
-    }
   });

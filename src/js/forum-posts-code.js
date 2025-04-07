@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Get references to key elements
   const postsContainer = document.querySelector('.posts-container');
   const filterTabs = document.querySelectorAll('.filter-tab');
-  const menuItems = document.querySelectorAll('.menu-item');
   
   // Current tag filter
   let currentTagFilter = null;
@@ -138,12 +137,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Make posts clickable to view details
+  // Simplified function to make posts clickable to view details
   function makePostsClickable() {
     const posts = document.querySelectorAll('.post');
     
     posts.forEach(post => {
-      // Make the whole post clickable except for specific elements
       post.addEventListener('click', function(e) {
         // Don't navigate if clicking on tag, buttons, or stats
         if (e.target.closest('.post-tag') || 
@@ -152,31 +150,19 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
         
-        // Get post data
-        const title = post.querySelector('.post-title').textContent;
-        const content = post.querySelector('.post-excerpt')?.textContent || '';
-        const username = post.querySelector('.username').textContent;
-        const timeAgo = post.querySelector('.time').textContent;
-        const tag = post.querySelector('.post-tag').textContent;
-        const votes = post.querySelector('.post-stats .icon-arrow-up + span').textContent;
-        const views = post.querySelector('.post-stats .icon-eye + span').textContent;
-        const comments = post.querySelector('.post-stats .icon-message + span').textContent;
-        
-        // Create post data object
+        // Get minimal required post data for navigation
         const postData = {
-          type: 'questions',
-          title,
-          content,
-          username,
-          timeAgo,
-          tag,
-          votes,
-          views,
-          comments
+          title: post.querySelector('.post-title').textContent,
+          content: post.querySelector('.post-excerpt')?.textContent || '',
+          username: post.querySelector('.username').textContent,
+          tag: post.querySelector('.post-tag').textContent
         };
         
-        // Store post data in localStorage
+        // Store minimal post data in localStorage
         localStorage.setItem('currentPost', JSON.stringify(postData));
+        
+        // Navigate to post details page (you would add the actual navigation here)
+        // window.location.href = `/forum/post/${encodeURIComponent(postData.title)}`;
       });
     });
   }

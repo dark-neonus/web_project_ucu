@@ -1,9 +1,8 @@
-// Function to make authenticated requests
 function fetchWithAuth(url, options = {}) {
     const token = localStorage.getItem("access_token");
     if (!token) {
       alert("You are not logged in. Please log in to continue.");
-      window.location.href = "/src/pages/login-page.html"; // Redirect to login page
+      window.location.href = "/src/pages/login-page.html";
       return;
     }
   
@@ -18,7 +17,7 @@ function fetchWithAuth(url, options = {}) {
         if (response.status === 401) {
           alert("Session expired. Please log in again.");
           localStorage.removeItem("access_token");
-          window.location.href = "/src/pages/login-page.html"; // Redirect to login page
+          window.location.href = "/src/pages/login-page.html";
         }
         return response;
       })

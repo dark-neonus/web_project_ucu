@@ -31,8 +31,10 @@ fastapi-backend
     │   ├── create_event
     │   └── view_event
     └── forum (posts_list)
-        ├── create_post
-        └── view_post
+    │   ├── create_post
+    │   └── view_post
+    └── profile (user_profile)
+        └── settings
 ```
 
 ## Features
@@ -45,8 +47,7 @@ fastapi-backend
 
 1. **Clone the repository**:
    ```
-   git clone <repository-url>
-   cd fastapi-backend
+   git clone https://github.com/dark-neonus/web_project_ucu.git
    ```
 
 2. **Install dependencies**:

@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Get references to key elements
   const postsContainer = document.querySelector('.posts-container');
   const filterTabs = document.querySelectorAll('.filter-tab');
-  const menuItems = document.querySelectorAll('.menu-item');
   
   // Current tag filter
   let currentTagFilter = null;
@@ -10,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Function to load events including those from localStorage
   async function fetchEventsData() {
     try {
-      // Try to fetch from server first
       let serverData = { events: [] };
       try {
         const response = await fetch('/src/json/data.json');
@@ -36,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Function to render posts based on filters
   async function renderEvents() {
-    if (!postsContainer) return; // Exit if not on the events page
+    if (!postsContainer) return;
     
     postsContainer.innerHTML = '<div class="loading-state">Loading...</div>';
     
@@ -75,8 +73,8 @@ document.addEventListener('DOMContentLoaded', function() {
       events.forEach(event => {
         const eventElement = document.createElement('div');
         eventElement.className = 'post';
+        eventElement.dataset.id = event.id || `event-${Date.now()}`;
         
-        // Event content
         let eventContent = `
           <div class="post-header">
             <div class="user-info">
@@ -99,7 +97,6 @@ document.addEventListener('DOMContentLoaded', function() {
           eventContent += `<p class="post-excerpt">${event.content || event.excerpt}</p>`;
         }
         
-        // Event date and location
         if (event.date || event.location) {
           eventContent += `<div class="event-details">`;
           if (event.date) {
@@ -157,46 +154,18 @@ document.addEventListener('DOMContentLoaded', function() {
     events.forEach(event => {
       // Make the whole event clickable except for specific elements
       event.addEventListener('click', function(e) {
-        // Don't navigate if clicking on tag, buttons, or stats
         if (e.target.closest('.post-tag') || 
             e.target.closest('button') ||
             e.target.closest('.post-stats')) {
           return;
         }
         
-        // Get event data
-        const title = event.querySelector('.post-title').textContent;
-        const content = event.querySelector('.post-excerpt')?.textContent || '';
-        const username = event.querySelector('.username').textContent;
-        const timeAgo = event.querySelector('.time').textContent;
-        const tag = event.querySelector('.post-tag').textContent;
-        const votes = event.querySelector('.post-stats .icon-arrow-up + span').textContent;
-        const views = event.querySelector('.post-stats .icon-eye + span').textContent;
-        const comments = event.querySelector('.post-stats .icon-message + span').textContent;
+        // Store the event ID in localStorage
+        const eventId = this.dataset.id;
+        localStorage.setItem('currentEventId', eventId);
         
-        // Create event data object
-        const eventData = {
-          type: 'events',
-          title,
-          content,
-          username,
-          timeAgo,
-          tag,
-          votes,
-          views,
-          comments
-        };
-        
-        // Add event-specific data
-        const eventDate = event.querySelector('.event-date')?.textContent || '';
-        const eventLocation = event.querySelector('.event-location')?.textContent || '';
-        
-        eventData.date = eventDate;
-        eventData.location = eventLocation;
-        
-        // Store event data in localStorage
-        localStorage.setItem('currentPost', JSON.stringify(eventData));
-        
+        // Navigate to the event details page
+        window.location.href = `/events/view/${eventId}`;
       });
     });
   }

@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Form elements
   const questionForm = document.querySelector('.question-form');
   const formTitle = document.querySelector('.form-input');
   const formContent = document.querySelector('.form-textarea');
@@ -32,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
         title: formTitle.value.trim(),
         content: formContent.value.trim(),
         tag: formCategory.value,
-        username: 'Anonymous User', // Default username for non-logged in users
+        username: 'Anonymous User',
         timestamp: new Date().toISOString(),
         timeAgo: 'Just now',
         views: 0,
@@ -41,10 +40,8 @@ document.addEventListener('DOMContentLoaded', function() {
         closed: false
       };
       
-      // Save to localStorage
       saveNewQuestion(newQuestion);
       
-      // Redirect back to the forum page
       alert('Your question has been submitted successfully!');
       window.location.href = '/src/pages/forum-page.html?content=questions';
     });
@@ -52,11 +49,10 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Function to save a new question to localStorage
   function saveNewQuestion(question) {
-    // Get existing questions
     let questions = JSON.parse(localStorage.getItem('forumQuestions')) || [];
     
     // Add new question
-    questions.unshift(question); // Add to beginning
+    questions.unshift(question);
     
     // Save back to localStorage
     localStorage.setItem('forumQuestions', JSON.stringify(questions));

@@ -8,6 +8,8 @@ from fastapi.templating import Jinja2Templates
 from uuid import UUID
 from pathlib import Path
 from server.apps.events.models import EventCategory
+from server.apps.authentication.models import User
+from server.core.security import get_current_user,OAuth2PasswordBearer
 
 router = APIRouter()
 
@@ -44,8 +46,17 @@ def create_event_page():
     else:
         return HTMLResponse(content="<h1>Create event page not found</h1>", status_code=404)
 
-@router.post("/create_event", response_model=EventCreate)
-def create_event(event: EventCreate, db: Session = Depends(get_db)):
+@router.post("/create_event", response_model=EventResponse)
+def create_event(event: EventCreate, token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")), db: Session = Depends(get_db)):
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    # Ensure the author_id matches the current user
+    if str(user.id) != str(event.author_id):
+        raise HTTPException(status_code=403, detail="You are not authorized to create an event for this user")
+
     # Create a new event instance
     new_event = Event(
         title=event.title,
@@ -71,6 +82,9 @@ def view_event_page(event_id: str, request: Request, db: Session = Depends(get_d
     event = db.query(Event).filter(Event.id == event_id).first()
     if event is None:
         raise HTTPException(status_code=404, detail="Event not found")
+    event_author = db.query(User).filter(User.id == event.author_id).first()
+    if event_author is None:
+        raise HTTPException(status_code=404, detail="Event author not found")
 
     # Convert the event to the EventResponse model
     event_data = EventResponse(
@@ -81,6 +95,7 @@ def view_event_page(event_id: str, request: Request, db: Session = Depends(get_d
         date_scheduled=str(event.date_sheduled) if event.date_sheduled else None,
         category=event.category,
         author_id=event.author_id,
+        author_username=event_author.username,
     )
 
     # Render the template with event data

@@ -9,6 +9,9 @@ from server.core.security import hash_password, verify_password
 from datetime import timedelta
 from pathlib import Path
 from server.core.security import create_access_token
+from server.core.security import get_current_user
+from server.apps.authentication.models import User
+from server.core.database import get_db
 
 router = APIRouter()
 
@@ -70,3 +73,12 @@ def login_page():
     else:
         return HTMLResponse(content="<h1>Login page not found</h1>", status_code=404)
 
+@router.get("/get_user_id", response_model=dict)
+def get_user_id(token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")), db: Session = Depends(get_db)):
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    # Return the user's ID
+    return {"user_id": str(user.id)}

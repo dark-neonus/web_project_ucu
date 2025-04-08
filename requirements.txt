@@ -10,3 +10,4 @@ email-validator
 passlib
 dotenv
 pydantic
+jinja2

@@ -10,6 +10,7 @@ from pathlib import Path
 from server.apps.events.models import EventCategory
 from server.apps.authentication.models import User
 from server.core.security import get_current_user,OAuth2PasswordBearer
+from typing import Optional
 
 router = APIRouter()
 
@@ -23,16 +24,31 @@ templates = Jinja2Templates(directory="src/pages")
 #     return events
 
 @router.get("/", response_class=HTMLResponse)
-def events_page():
-    # Path to the registration HTML file
-    html_file_path = Path(__file__).parent.parent.parent.parent / "src/pages/forum-events-page.html"
+def events_page(
+    request: Request,
+    start: Optional[int] = None,  # Optional query parameter for start index
+    end: Optional[int] = None,    # Optional query parameter for end index
+    db: Session = Depends(get_db),
+):
+    # Query the database for all events, sorted by date_created
+    events = db.query(Event).order_by(Event.date_created).all()
 
-    # Read the HTML file content
-    if html_file_path.exists():
-        html_content = html_file_path.read_text(encoding="utf-8")
-        return HTMLResponse(content=html_content)
-    else:
-        return HTMLResponse(content="<h1>Events page not found</h1>", status_code=404)
+    # Apply slicing if start and end are valid
+    try:
+        if start is not None or end is not None:
+            events = events[start:end]
+    except (TypeError, ValueError):
+        # If slicing fails due to invalid start/end, return all events
+        pass
+
+    # Render the template with the list of events
+    return templates.TemplateResponse(
+        "forum-events-page.html",  # Path to the Jinja2 template
+        {
+            "request": request,  # Required for Jinja2 templates
+            "events": events,  # Pass the list of events to the template
+        },
+    )
 
 @router.get("/create_event", response_class=HTMLResponse)
 def create_event_page():
@@ -95,7 +111,7 @@ def view_event_page(event_id: str, request: Request, db: Session = Depends(get_d
         date_scheduled=str(event.date_sheduled) if event.date_sheduled else None,
         category=event.category,
         author_id=event.author_id,
-        author_username=event_author.username,
+        author_username=event_author.first_name + (" " + event_author.last_name if event_author.last_name else ""),
     )
 
     # Render the template with event data

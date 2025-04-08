@@ -82,3 +82,6 @@ def get_user_id(token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")
 
     # Return the user's ID
     return {"user_id": str(user.id)}
+
+
+

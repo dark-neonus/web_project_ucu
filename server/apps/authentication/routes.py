@@ -12,8 +12,13 @@ from server.core.security import create_access_token
 from server.core.security import get_current_user
 from server.apps.authentication.models import User
 from server.core.database import get_db
+from fastapi import Request
+from fastapi.templating import Jinja2Templates
+from uuid import UUID
 
 router = APIRouter()
+
+templates = Jinja2Templates(directory="src/pages")
 
 @router.post("/register", response_model=UserResponse)
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
@@ -84,4 +89,30 @@ def get_user_id(token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")
     return {"user_id": str(user.id)}
 
 
+@router.get("/profile/{user_id}", response_class=HTMLResponse)
+def view_profile_page(user_id: str, request: Request, db: Session = Depends(get_db)):
+    # Convert the user_id to UUID
+    user_id = UUID(user_id)
+
+    # Query the database for the event
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Convert the event to the EventResponse model
+    event_data = UserResponse(
+        id=str(user.id),
+        first_name=user.first_name,
+        last_name=user.last_name,
+        email=user.email,
+    )
+
+    # Render the template with event data
+    return templates.TemplateResponse(
+        "user-profile-page.html",  # Path to the Jinja2 template
+        {
+            "request": request,  # Required for Jinja2 templates
+            "event": event_data.dict(),  # Pass the event data as a dictionary
+        },
+    )
 

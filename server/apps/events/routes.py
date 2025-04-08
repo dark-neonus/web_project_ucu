@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from uuid import UUID
 from pathlib import Path
-import json
+from server.apps.events.models import EventCategory
 
 router = APIRouter()
 
@@ -51,7 +51,7 @@ def create_event(event: EventCreate, db: Session = Depends(get_db)):
         title=event.title,
         description=event.description,
         date_scheduled=event.date_scheduled,
-        category=event.category,
+        category=event.category.value if isinstance(event.category, EventCategory) else event.category,
         author_id=event.author_id,
     )
 

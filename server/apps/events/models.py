@@ -3,7 +3,7 @@ from enum import Enum
 from uuid import uuid4, UUID
 from sqlmodel import SQLModel, Field
 
-class EventCategory(Enum):
+class EventCategory(str, Enum):
     HEALTH="health"
     EMPLOYMENT="employment"
     SUPPORT="support"

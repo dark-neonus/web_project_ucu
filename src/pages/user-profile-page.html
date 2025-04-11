@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tribuna - User Profile</title>
   <link rel="stylesheet" href="/src/css/main-style.css">
-  <link rel="stylesheet" href="/src/css/profile-style.css">
-
+  <link rel="stylesheet" href="/src/css/user-profile-style.css">
 </head>
 <body>
   <!-- Header -->
@@ -38,7 +37,7 @@
     <aside class="profile-sidebar">
       <div class="sidebar-user">
         <div class="sidebar-avatar"></div>
-        <h3 class="sidebar-username">Username</h3>
+        <h3 class="sidebar-username">{{ user.first_name }} {{ user.last_name }}</h3>
         <p class="user-status">Member since Jan 2025</p>
       </div>
       
@@ -70,19 +69,19 @@
             </div>
           </div>
           <div class="profile-header-details">
-            <h1 class="profile-name">John Doe</h1>
-            <p class="profile-bio">Software developer and forum enthusiast</p>
+            <h1 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h1>
+            <p class="profile-bio">{{ user.bio if user.bio else "No bio available" }}</p>
             <div class="profile-stats">
               <div class="stat">
-                <span class="stat-value">247</span>
+                <span class="stat-value">{{ user.post_count if user.post_count else "0" }}</span>
                 <span class="stat-label">Posts</span>
               </div>
               <div class="stat">
-                <span class="stat-value">85</span>
+                <span class="stat-value">{{ user.topic_count if user.topic_count else "0" }}</span>
                 <span class="stat-label">Topics</span>
               </div>
               <div class="stat">
-                <span class="stat-value">2.1k</span>
+                <span class="stat-value">{{ user.likes_count if user.likes_count else "0" }}</span>
                 <span class="stat-label">Likes</span>
               </div>
             </div>
@@ -104,8 +103,7 @@
             </div>
             <div class="card-body">
               <p class="profile-about">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum in fermentum turpis. 
-                Proin auctor magna sit amet ligula finibus, in condimentum sapien sodales.
+                {{ user.about if user.about else "No information available." }}
               </p>
             </div>
           </div>
@@ -119,16 +117,20 @@
               <ul class="profile-details-list">
                 <li>
                   <span class="detail-label">Email:</span>
-                  <span class="detail-value">john.doe@example.com</span>
+                  <span class="detail-value">{{ user.email }}</span>
                 </li>
+                {% if user.website %}
                 <li>
                   <span class="detail-label">Website:</span>
-                  <span class="detail-value">johndoe.dev</span>
+                  <span class="detail-value">{{ user.website }}</span>
                 </li>
+                {% endif %}
+                {% if user.location %}
                 <li>
                   <span class="detail-label">Location:</span>
-                  <span class="detail-value">New York, USA</span>
+                  <span class="detail-value">{{ user.location }}</span>
                 </li>
+                {% endif %}
               </ul>
             </div>
           </div>
@@ -147,13 +149,34 @@
         </div>
         
         <div class="tab-content active" id="posts-tab">
-           <!-- Content -->
-          <button class="btn btn-load-more">Load More</button>
+          {% if user.recent_posts %}
+            <div class="activity-list">
+              {% for post in user.recent_posts %}
+                <div class="activity-item">
+                  <div class="activity-header">
+                    <h4 class="activity-title">{{ post.title }}</h4>
+                    <span class="activity-date">{{ post.created_at }}</span>
+                  </div>
+                  <p class="activity-excerpt">{{ post.content[:100] }}{% if post.content|length > 100 %}...{% endif %}</p>
+                  <a href="/forum/post/{{ post.id }}" class="activity-link">View post</a>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="no-data-message">No recent posts found.</p>
+          {% endif %}
+          {% if user.recent_posts %}
+            <button class="btn btn-load-more">Load More</button>
+          {% endif %}
         </div>
       </section>
     </main>
   </div>
-  <script src="/src/js/auth.js"></script>
-  <script src="/src/js/header.js"></script>
+  <script type="module" src="/src/js/auth.js"></script>
+  <script type="module" src="/src/js/header.js"></script>
+  
+  {% if current_user_id == user.id %}
+  <script type="module" src="/src/js/profile-edit.js"></script>
+  {% endif %}
 </body>
 </html>

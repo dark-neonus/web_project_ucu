@@ -7,53 +7,55 @@ document.addEventListener('DOMContentLoaded', async () => {
     redirectToLogin();
     return;
   }
-  
+
   try {
     // Get user authentication information
     const userId = await getUserId();
     const token = getAuthToken();
-    
+
+    // Fetch event categories from the backend
+    const categoriesResponse = await fetch('/events/categories', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!categoriesResponse.ok) {
+      throw new Error('Failed to fetch event categories');
+    }
+
+    const categories = await categoriesResponse.json();
+
+    // Populate the dropdown with categories
+    const categorySelect = document.getElementById('event-category');
+    categories.forEach((category) => {
+      const option = document.createElement('option');
+      option.value = category;
+      option.textContent = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase(); // Capitalize
+      categorySelect.appendChild(option);
+    });
+
     // Set up form submission handler
     const formButton = document.querySelector('.button-primary');
     const formElement = document.querySelector('.question-form');
-    
+
     formButton.addEventListener('click', async (e) => {
       e.preventDefault();
-      
+
       // Get form values from the DOM
       const title = document.querySelector('.form-input').value.trim();
       const description = document.querySelector('.form-textarea').value.trim();
-      const dateScheduled = document.getElementById('event-date').value;
+      const dateScheduled = new Date(document.getElementById('event-date').value).toISOString();
       const location = document.getElementById('event-location').value.trim();
-      const categorySelect = document.querySelector('.form-select');
-      const category = categorySelect.options[categorySelect.selectedIndex].value;
-      
+      const category = categorySelect.value;
+
       // Validate form data
-      if (!title) {
-        alert('Please enter an event title');
+      if (!title || !description || !dateScheduled || !location || !category) {
+        alert('Please fill in all fields.');
         return;
       }
-      
-      if (!description) {
-        alert('Please enter an event description');
-        return;
-      }
-      
-      if (!dateScheduled) {
-        alert('Please select an event date');
-        return;
-      }
-      
-      if (!location) {
-        alert('Please enter an event location');
-        return;
-      }
-      
-      if (!category || category === '') {
-        alert('Please select a category');
-        return;
-      }
-      
+
       // Prepare data for submission
       const eventData = {
         title,
@@ -61,26 +63,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         date_scheduled: dateScheduled,
         location,
         category,
-        author_id: userId
+        author_id: userId,
       };
-      
+
+      console.log(eventData); // Debugging: Log the data being sent to the backend
+
       try {
         // Send data to the server
         const createResponse = await fetch('/events/create_event', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify(eventData)
+          body: JSON.stringify(eventData),
         });
-        console.log(createResponse)
-        
+
         if (!createResponse.ok) {
           const errorData = await createResponse.json();
           throw new Error(errorData.detail || 'Failed to create event');
         }
-        // Handle successful response
+
         alert('Event created successfully!');
         window.location.href = '/events';
       } catch (error) {
@@ -88,13 +91,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert(`An error occurred while creating the event: ${error.message}`);
       }
     });
-    
+
     // Add event listeners for any additional functionality
     const addImageButton = document.querySelector('.button-secondary');
     addImageButton.addEventListener('click', () => {
       alert('Image upload functionality will be implemented in a future update.');
     });
-    
+
   } catch (error) {
     console.error('Error in event creation setup:', error);
     alert('An error occurred. Please log in again.');

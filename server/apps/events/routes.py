@@ -11,6 +11,7 @@ from server.apps.events.models import EventCategory
 from server.apps.authentication.models import User
 from server.core.security import get_current_user,OAuth2PasswordBearer
 from typing import Optional
+from datetime import datetime
 
 router = APIRouter()
 
@@ -87,7 +88,20 @@ def create_event(event: EventCreate, token: str = Depends(OAuth2PasswordBearer(t
     db.commit()
     db.refresh(new_event)
 
-    return new_event
+    # Ensure date_created is accessed as a datetime object
+    if not isinstance(new_event.date_created, str):
+        new_event.date_created = new_event.date_created.isoformat()
+
+    # Convert the event to the EventResponse model
+    return EventResponse(
+        title=new_event.title,
+        description=new_event.description,
+        date_created=new_event.date_created,  # Already converted to string
+        location=new_event.location,
+        date_scheduled=new_event.date_scheduled.isoformat() if isinstance(new_event.date_scheduled, datetime) else None,
+        category=new_event.category,
+        author_id=new_event.author_id,
+    )
 
 @router.get("/view_event/{event_id}", response_class=HTMLResponse)
 def view_event_page(event_id: str, request: Request, db: Session = Depends(get_db)):
@@ -108,7 +122,7 @@ def view_event_page(event_id: str, request: Request, db: Session = Depends(get_d
         description=event.description,
         date_created=str(event.date_created),
         location=event.location,
-        date_scheduled=str(event.date_sheduled) if event.date_sheduled else None,
+        date_scheduled=str(event.date_scheduled) if event.date_scheduled else None,
         category=event.category,
         author_id=event.author_id,
         author_username=event_author.first_name + (" " + event_author.last_name if event_author.last_name else ""),
@@ -122,3 +136,7 @@ def view_event_page(event_id: str, request: Request, db: Session = Depends(get_d
             "event": event_data.dict(),  # Pass the event data as a dictionary
         },
     )
+
+@router.get("/categories", response_model=list[str])
+def get_event_categories():
+    return [category.value for category in EventCategory]

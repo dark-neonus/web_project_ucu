@@ -18,6 +18,6 @@ class Event(SQLModel, table=True):
     description: str = Field(max_length=1000)
     location: str = Field(default="Unknown")
     date_created: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    date_sheduled: datetime = Field(default=None, nullable=True)
+    date_scheduled: datetime = Field(default=None, nullable=True)
     category: str = Field(default=EventCategory.OTHER.value, index=True)
     author_id: UUID = Field(foreign_key="user.id", nullable=False)

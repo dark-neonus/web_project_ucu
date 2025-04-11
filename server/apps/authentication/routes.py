@@ -32,11 +32,18 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
         last_name=user.last_name,
         email=user.email,
         hashed_password=hashed_password
-        )
+    )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return new_user
+
+    # Convert the UUID to a string in the response
+    return UserResponse(
+        id=str(new_user.id),  # Convert UUID to string
+        first_name=new_user.first_name,
+        last_name=new_user.last_name,
+        email=new_user.email,
+    )
 
 @router.get("/register", response_class=HTMLResponse)
 def register_page():
@@ -100,19 +107,19 @@ def view_profile_page(user_id: str, request: Request, db: Session = Depends(get_
         raise HTTPException(status_code=404, detail="User not found")
 
     # Convert the event to the EventResponse model
-    event_data = UserResponse(
+    user_data = UserResponse(
         id=str(user.id),
         first_name=user.first_name,
         last_name=user.last_name,
         email=user.email,
     )
 
-    # Render the template with event data
+    # Render the template with user data
     return templates.TemplateResponse(
         "user-profile-page.html",  # Path to the Jinja2 template
         {
             "request": request,  # Required for Jinja2 templates
-            "event": event_data.dict(),  # Pass the event data as a dictionary
+            "user": user_data.dict(),  # Pass the user data as a dictionary
         },
     )
 

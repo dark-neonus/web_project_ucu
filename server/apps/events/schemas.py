@@ -4,6 +4,9 @@ from pydantic import BaseModel, validator
 from sqlmodel import Field
 from server.apps.events.models import EventCategory
 from uuid import uuid4, UUID
+from server.apps.authentication.models import User
+from sqlalchemy.orm import Session
+
 
 class EventCreate(BaseModel):
     title: str = Field(max_length=150, index=True)
@@ -38,17 +41,30 @@ class EventResponse(BaseModel):
     date_scheduled: Optional[str] = None  # Ensure this is a string
     category: str
     author_id: UUID
+    author_username: Optional[str] = None
 
     @classmethod
-    def from_orm(cls, event):
+    def from_orm(cls, event, db: Session):
+        # Query the user by author_id
+        user = db.query(User).filter(User.id == event.author_id).first()
+        if not user:
+            raise ValueError(f"User with ID {event.author_id} not found")
+
+        # Construct the username
+        author_username = user.first_name
+        if user.last_name:
+            author_username += f" {user.last_name}"
+
+        # Return the EventResponse instance
         return cls(
             title=event.title,
             description=event.description,
             date_created=event.date_created.isoformat(),  # Convert datetime to ISO 8601 string
             location=event.location,
-            date_scheduled=event.date_sheduled.isoformat() if event.date_sheduled else None,
+            date_scheduled=event.date_scheduled.isoformat() if event.date_scheduled else None,
             category=event.category,
             author_id=event.author_id,
+            author_username=author_username,
         )
 
 class EventListResponse(BaseModel):

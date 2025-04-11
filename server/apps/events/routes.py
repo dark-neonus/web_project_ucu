@@ -101,6 +101,7 @@ def create_event(event: EventCreate, token: str = Depends(OAuth2PasswordBearer(t
         date_scheduled=new_event.date_scheduled.isoformat() if isinstance(new_event.date_scheduled, datetime) else None,
         category=new_event.category,
         author_id=new_event.author_id,
+        author_username=user.first_name + (" " + user.last_name if user.last_name else ""),
     )
 
 @router.get("/view_event/{event_id}", response_class=HTMLResponse)
@@ -112,21 +113,9 @@ def view_event_page(event_id: str, request: Request, db: Session = Depends(get_d
     event = db.query(Event).filter(Event.id == event_id).first()
     if event is None:
         raise HTTPException(status_code=404, detail="Event not found")
-    event_author = db.query(User).filter(User.id == event.author_id).first()
-    if event_author is None:
-        raise HTTPException(status_code=404, detail="Event author not found")
 
     # Convert the event to the EventResponse model
-    event_data = EventResponse(
-        title=event.title,
-        description=event.description,
-        date_created=str(event.date_created),
-        location=event.location,
-        date_scheduled=str(event.date_scheduled) if event.date_scheduled else None,
-        category=event.category,
-        author_id=event.author_id,
-        author_username=event_author.first_name + (" " + event_author.last_name if event_author.last_name else ""),
-    )
+    event_data = EventResponse.from_orm(event, db)
 
     # Render the template with event data
     return templates.TemplateResponse(

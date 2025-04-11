@@ -13,7 +13,7 @@ class Tag(TagBase):
     id: int
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Answer schemas
 class AnswerBase(BaseModel):
@@ -34,7 +34,7 @@ class Answer(AnswerBase):
     username: Optional[str] = None
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Question schemas
 class QuestionBase(BaseModel):
@@ -62,7 +62,7 @@ class Question(QuestionBase):
     username: Optional[str] = None
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class QuestionWithAnswers(Question):
     answers: List[Answer] = []
@@ -84,7 +84,7 @@ class Suggestion(SuggestionBase):
     username: Optional[str] = None
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Like/Dislike schemas
 class LikeCreate(BaseModel):

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tribuna Forum - Events</title>
-  <link rel="stylesheet" href="/src/css/main-style.css">
+  <link rel="stylesheet" href="/src/css/main-style.css">  
   <link rel="stylesheet" href="/src/css/forum-style.css">
 </head>
 <body>
@@ -184,23 +184,8 @@
   </div>
 
   <!-- Script -->
-  <script src="/src/js/auth.js"></script>
-  <script src="/src/js/header.js"></script>
-  <script>
-    // Minimal JavaScript for event clicking
-    document.addEventListener('DOMContentLoaded', function() {
-      // Make events clickable to view details
-      document.querySelectorAll('.post').forEach(post => {
-        post.addEventListener('click', function(e) {
-          if (e.target.closest('button') || e.target.closest('.post-stats')) {
-            return;
-          }
-          
-          const eventId = this.dataset.id;
-          window.location.href = `/events/view_event/${eventId}`;
-        });
-      });
-    });
-  </script>
+  <script type = "module" src="/src/js/auth.js"></script>
+  <script type = "module" src="/src/js/header.js"></script>
+  <script src="/src/js/forum-events-code.js"></script>
 </body>
 </html>

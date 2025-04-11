@@ -1,15 +1,16 @@
+import { getUserId, getAuthToken, isAuthenticated, redirectToLogin } from '/src/js/auth.js';
+
 document.addEventListener('DOMContentLoaded', function() {
     const headerContainer = document.querySelector('.header-container');
     
     // Handle authentication state
-    function handleAuthState() {
-        const token = localStorage.getItem('access_token');
+    async function handleAuthState() {
         const loginButton = document.querySelector('.login-button');
         const registerButton = document.querySelector('.register-button');
         const logoutButton = document.querySelector('.logout-button');
         const navContainer = document.querySelector('.auth-links');
         
-        if (token && token.split('.').length === 3) {
+        if (isAuthenticated()) {
             // User is logged in
             if (loginButton) loginButton.style.display = 'none';
             if (registerButton) registerButton.style.display = 'none';
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Try to get username from token for the alt text and to generate profile initial
                 let username = 'User';
                 try {
+                    const token = getAuthToken();
                     const payload = token.split('.')[1];
                     const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
                     const userData = JSON.parse(decoded);
@@ -41,9 +43,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 const colorIndex = username.charCodeAt(0) % colors.length;
                 const bgColor = colors[colorIndex];
                 
+                // Get user ID for profile link
+                const userId = await getUserId();
+                const profileLink = `/auth/profile/${userId}`;
+                
                 // Create profile HTML with logout in dropdown and styled avatar
                 profileContainer.innerHTML = `
-                    <a href="/profile/" class="profile-link">
+                    <a href="${profileLink}" class="profile-link">
                         <div class="profile-avatar" style="background-color: ${bgColor}; color: white; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; font-weight: bold; font-size: 16px;">
                             ${userInitial}
                         </div>
@@ -58,8 +64,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                         </div>
                         <div class="dropdown-divider"></div>
-                        <a href="/profile/" class="dropdown-item">My Profile</a>
-                        <a href="/profile/settings" class="dropdown-item">Settings</a>
+                        <a href="${profileLink}" class="dropdown-item">My Profile</a>
+                        <a href="${profileLink}/settings" class="dropdown-item">Settings</a>
                         <div class="dropdown-divider"></div>
                         <a href="#" class="dropdown-item logout-dropdown-item">Logout</a>
                     </div>
@@ -68,19 +74,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 navContainer.appendChild(profileContainer);
                 
                 // Add click event to toggle dropdown
-                const profileLink = profileContainer.querySelector('.profile-link');
-                if (profileLink) {
-                    profileLink.addEventListener('click', function(e) {
+                const profileLinkElement = profileContainer.querySelector('.profile-link');
+                if (profileLinkElement) {
+                    profileLinkElement.addEventListener('click', function(e) {
                         e.preventDefault();
                         profileContainer.classList.toggle('active');
-                    });
-                }
-                
-                // Add click event to view profile link
-                const viewProfileLink = profileContainer.querySelector('.view-profile-link');
-                if (viewProfileLink) {
-                    viewProfileLink.addEventListener('click', function() {
-                        window.location.href = '/profile/';
                     });
                 }
                 
@@ -103,6 +101,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const profileContainer = document.querySelector('.profile-container');
             if (profileContainer) profileContainer.remove();
+            
+            // Check if we're on a protected page and redirect if needed
+            const requiresAuth = document.body.hasAttribute('data-requires-auth');
+            if (requiresAuth) {
+                redirectToLogin();
+            }
         }
     }
     

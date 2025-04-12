@@ -15,6 +15,8 @@ from server.core.database import get_db
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
 from uuid import UUID
+from server.apps.events.schemas import EventResponse
+from server.apps.events.models import Event
 
 router = APIRouter()
 
@@ -114,12 +116,29 @@ def view_profile_page(user_id: str, request: Request, db: Session = Depends(get_
         email=user.email,
     )
 
+    print(user_id)
+    users_events = db.query(Event).filter(Event.author_id == user_id).all()
+    # Convert the events to the EventResponse model
+    events_data = [
+        EventResponse(
+            id=event.id,  # Convert UUID to string
+            title=event.title,
+            description=event.description,
+            date_created=event.date_created.isoformat(),  # Convert datetime to ISO 8601 string
+            location=event.location,
+            date_scheduled=event.date_scheduled.isoformat() if event.date_scheduled else None,
+            category=event.category,
+            author_id=event.author_id,
+        ).dict()
+        for event in users_events
+    ]
+    print(events_data)
     # Render the template with user data
     return templates.TemplateResponse(
         "user-profile-page.html",  # Path to the Jinja2 template
         {
             "request": request,  # Required for Jinja2 templates
             "user": user_data.dict(),  # Pass the user data as a dictionary
+            "events": events_data,
         },
     )
-

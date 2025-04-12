@@ -94,6 +94,7 @@ def create_event(event: EventCreate, token: str = Depends(OAuth2PasswordBearer(t
 
     # Convert the event to the EventResponse model
     return EventResponse(
+        id=new_event.id,
         title=new_event.title,
         description=new_event.description,
         date_created=new_event.date_created,  # Already converted to string

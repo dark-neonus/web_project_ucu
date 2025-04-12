@@ -149,16 +149,19 @@
         </div>
         
         <div class="tab-content active" id="posts-tab">
-          {% if user.recent_posts %}
+          <!-- Output len of events -->
+          <p>Total Events: {{ events|length }}</p>
+          
+          {% if events %}
             <div class="activity-list">
-              {% for post in user.recent_posts %}
+              {% for event in events %}
                 <div class="activity-item">
                   <div class="activity-header">
-                    <h4 class="activity-title">{{ post.title }}</h4>
-                    <span class="activity-date">{{ post.created_at }}</span>
+                    <h4 class="activity-title">{{ event.title }}</h4>
+                    <span class="activity-date">{{ event.date_created }}</span>
                   </div>
-                  <p class="activity-excerpt">{{ post.content[:100] }}{% if post.content|length > 100 %}...{% endif %}</p>
-                  <a href="/forum/post/{{ post.id }}" class="activity-link">View post</a>
+                  <p class="activity-excerpt">{{ event.description[:100] }}{% if event.description|length > 100 %}...{% endif %}</p>
+                  <a href="/events/view_event/{{ event.id }}" class="activity-link">View post</a>
                 </div>
               {% endfor %}
             </div>

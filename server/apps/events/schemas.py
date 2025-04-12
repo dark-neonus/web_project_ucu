@@ -34,6 +34,7 @@ class EventCreate(BaseModel):
     model_config = {"from_attributes": True}
 
 class EventResponse(BaseModel):
+    id: UUID
     title: str
     description: str
     date_created: str  # Ensure this is a string
@@ -57,6 +58,7 @@ class EventResponse(BaseModel):
 
         # Return the EventResponse instance
         return cls(
+            id=event.id,
             title=event.title,
             description=event.description,
             date_created=event.date_created.isoformat(),  # Convert datetime to ISO 8601 string

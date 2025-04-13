@@ -32,7 +32,7 @@
   position: absolute;
   bottom: -7px;
   left: 0;
-  width: 40px;
+  width: auto;
   height: 3px;
   background-color: var(--primary-color);
   border-radius: var(--border-radius-full);
@@ -396,5 +396,139 @@
   
   .filter-select {
     width: 100%;
+  }
+}
+
+/* Add this to your user-profile-style.css file */
+
+/* Responsive sidebar adjustments */
+@media (max-width: 992px) {
+  .page-container {
+    position: relative;
+    overflow-x: hidden; /* Prevent horizontal scroll when sidebar is open */
+  }
+  
+  .profile-sidebar {
+    position: fixed;
+    left: -250px; /* Hide sidebar by default on small screens */
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    z-index: 1000;
+    transition: transform var(--transition-normal);
+    box-shadow: var(--shadow-lg);
+    background-color: var(--bg-white);
+    padding-top: 60px; /* Space for the header */
+  }
+  
+  .profile-sidebar.active {
+    transform: translateX(250px); /* Show sidebar when active */
+  }
+  
+  /* Add hamburger menu button for toggling sidebar */
+  .sidebar-toggle {
+    display: block;
+    position: fixed;
+    top: 80px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    z-index: 1001;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+  }
+  
+  .sidebar-toggle:hover {
+    background-color: var(--primary-hover);
+  }
+  
+  .sidebar-toggle span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background-color: white;
+    position: relative;
+    transition: all var(--transition-fast);
+  }
+  
+  .sidebar-toggle span::before,
+  .sidebar-toggle span::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 2px;
+    background-color: white;
+    transition: all var(--transition-fast);
+  }
+  
+  .sidebar-toggle span::before {
+    transform: translateY(-6px);
+  }
+  
+  .sidebar-toggle span::after {
+    transform: translateY(6px);
+  }
+  
+  .sidebar-toggle.active span {
+    background-color: transparent;
+  }
+  
+  .sidebar-toggle.active span::before {
+    transform: rotate(45deg);
+  }
+  
+  .sidebar-toggle.active span::after {
+    transform: rotate(-45deg);
+  }
+  
+  /* Sidebar overlay when active */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+  
+  .sidebar-overlay.active {
+    display: block;
+  }
+  
+  /* Adjust main content area */
+  .profile-content {
+    width: 100%;
+    padding: 0;
+  }
+}
+
+/* Extra small devices - further compress layouts */
+@media (max-width: 576px) {
+  .profile-header-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .profile-header-details {
+    padding-left: 0;
+    margin-top: var(--space-lg);
+    margin-left: 170px;
+  }
+  
+  .profile-stats {
+    justify-content: center;
+  }
+  
+  .card-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -270,11 +270,8 @@
   }
   
   .username {
-    color: #2970ff;
+    color: #0a44b8;
     text-decoration: none;
     display: inline-block;
   }
   
-  .username:hover {
-    text-decoration: underline;
-  }

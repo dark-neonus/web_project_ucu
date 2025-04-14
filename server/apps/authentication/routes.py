@@ -142,3 +142,18 @@ def view_profile_page(user_id: str, request: Request, db: Session = Depends(get_
             "events": events_data,
         },
     )
+
+@router.get("/get_user_data", response_model=UserResponse)
+def get_user_data(token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")), db: Session = Depends(get_db)):
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    # Return the user's data as UserResponse
+    return UserResponse(
+        id=str(user.id),
+        first_name=user.first_name,
+        last_name=user.last_name,
+        email=user.email,
+    )

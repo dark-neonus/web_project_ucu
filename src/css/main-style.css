@@ -318,7 +318,6 @@ header {
   border: 5px solid var(--bg-white);
   position: absolute;
   top: -75px;
-  left: var(--space-xl);
   overflow: hidden;
   background-size: cover;
   background-position: center;
@@ -595,7 +594,6 @@ header {
 }
 
 .profile-header-details {
-  margin-left: 180px;
   padding-top: var(--space-lg);
 }
 

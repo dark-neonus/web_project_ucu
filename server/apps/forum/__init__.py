@@ -4,4 +4,4 @@ from fastapi import APIRouter
 
 router = APIRouter()
 
-from . import routes  # Import routes to register them with the router
+from server.apps.forum import routes  # Import routes to register them with the router

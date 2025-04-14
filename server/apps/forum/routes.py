@@ -1,165 +1,144 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Path
+from fastapi import APIRouter, HTTPException, Depends, Path, status
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from . import schemas, services
+from pathlib import Path as FilePath
+from server.apps.forum.models import Post
 from server.core.database import get_db
+from server.core.security import get_current_user
 
-# Import from auth module (placeholder)
-# from backend.apps.authentication.dependencies import get_current_user
+router = APIRouter()
 
-# Mock function for get_current_user since auth is handled by another team
-async def get_current_user(db: Session = Depends(get_db)):
-    # In a real application, this would verify the JWT token
-    # and return the user. For now, we return a mock user.
-    return {"id": 1, "username": "test_user"}
+# Optional current user dependency that doesn't raise an exception if user is not authenticated
+async def get_optional_user(db: Session = Depends(get_db)):
+    try:
+        return await get_current_user(db)
+    except:
+        return None
 
-router = APIRouter(
-    prefix="/forum",
-    tags=["forum"],
-    responses={404: {"description": "Not found"}},
-)
+# HTML Page routes
+@router.get("/", response_class=HTMLResponse)
+def events_page():
+    # Path to the forum HTML file
+    html_file_path = FilePath(__file__).parent.parent.parent.parent / "src/pages/forum-posts-page.html"
+    # Read the HTML file content
+    if html_file_path.exists():
+        html_content = html_file_path.read_text(encoding="utf-8")
+        return HTMLResponse(content=html_content)
+    else:
+        return HTMLResponse(content="<h1>Forum page not found</h1>", status_code=404)
 
-# Tag routes
-@router.get("/tags", response_model=List[schemas.Tag])
-def get_tags(
-    skip: int = 0, 
-    limit: int = 100, 
-    db: Session = Depends(get_db)
-):
-    return services.get_tags(db, skip=skip, limit=limit)
+@router.get("/create_post", response_class=HTMLResponse)
+async def create_post_page(current_user: dict = Depends(get_optional_user)):
+    # Check if user is authenticated
+    if not current_user:
+        # Redirect to login page if user is not authenticated
+        return RedirectResponse(url="/auth/login?next=/forum/create_post", status_code=status.HTTP_302_FOUND)
 
-# Question routes
-@router.post("/questions", response_model=schemas.Question)
-def create_question(
-    question: schemas.QuestionCreate,
+    # Path to the create post HTML file
+    html_file_path = FilePath(__file__).parent.parent.parent.parent / "src/pages/create-post-page.html"
+    # Read the HTML file content
+    if html_file_path.exists():
+        html_content = html_file_path.read_text(encoding="utf-8")
+        return HTMLResponse(content=html_content)
+    else:
+        return HTMLResponse(content="<h1>Create post page not found</h1>", status_code=404)
+
+@router.get("/view_post/{post_id}", response_class=HTMLResponse)
+def view_post_page(post_id: int, db: Session = Depends(get_db)):
+    # Check if post exists - any user can view posts
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if post is None:
+        return HTMLResponse(content="<h1>Post not found</h1>", status_code=404)
+
+    html_file_path = FilePath(__file__).parent.parent.parent.parent / "src/pages/post-view-page.html"
+    # Read the HTML file content
+    if html_file_path.exists():
+        html_content = html_file_path.read_text(encoding="utf-8")
+        return HTMLResponse(content=html_content)
+    else:
+        return HTMLResponse(content="<h1>View post page not found</h1>", status_code=404)
+
+# Post routes - Create requires authentication
+@router.post("/posts")
+async def create_post(
+    post: dict,  # Use your actual schema here if available
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)  # Will raise 401 if not authenticated
 ):
-    return services.create_question(db, question, current_user["id"])
+    # Create a post using your actual model
+    new_post = Post(
+        title=post.get("title"),
+        content=post.get("content"),
+        user_id=current_user.get("id")
+    )
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+    return new_post
 
-@router.get("/questions", response_model=List[schemas.Question])
-def get_questions(
-    skip: int = 0,
-    limit: int = 100,
-    tag: Optional[str] = None,
-    search: Optional[str] = None,
-    db: Session = Depends(get_db)
-):
-    return services.get_questions(db, skip=skip, limit=limit, tag=tag, search=search)
-
-@router.get("/questions/{question_id}", response_model=schemas.QuestionWithAnswers)
-def get_question(
-    question_id: int = Path(..., title="The ID of the question to get"),
-    db: Session = Depends(get_db)
-):
-    db_question = services.get_question(db, question_id)
-    if db_question is None:
-        raise HTTPException(status_code=404, detail="Question not found")
-    
-    # Increment view count
-    db_question = services.increment_question_view(db, question_id)
-    
-    # Get answers for the question
-    answers = services.get_answers(db, question_id)
-    
-    # Build response with answers
-    question_dict = schemas.Question.from_orm(db_question).dict()
-    question_dict["answers"] = answers
-    
-    return question_dict
-
-@router.put("/questions/{question_id}", response_model=schemas.Question)
-def update_question(
-    question_id: int,
-    question_update: schemas.QuestionUpdate,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    return services.update_question(db, question_id, question_update, current_user["id"])
-
-@router.delete("/questions/{question_id}")
-def delete_question(
-    question_id: int,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    return services.delete_question(db, question_id, current_user["id"])
-
-# Answer routes
-@router.post("/questions/{question_id}/answers", response_model=schemas.Answer)
-def create_answer(
-    question_id: int,
-    answer: schemas.AnswerCreate,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    return services.create_answer(db, answer, current_user["id"], question_id)
-
-@router.get("/questions/{question_id}/answers", response_model=List[schemas.Answer])
-def get_answers(
-    question_id: int,
+# View routes - No authentication required
+@router.get("/posts")
+def get_posts(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    return services.get_answers(db, question_id, skip=skip, limit=limit)
+    # Get posts using your actual model - anyone can view posts
+    posts = db.query(Post).offset(skip).limit(limit).all()
+    return posts
 
-@router.put("/answers/{answer_id}", response_model=schemas.Answer)
-def update_answer(
-    answer_id: int,
-    content: str,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+@router.get("/posts/{post_id}")
+def get_post(
+    post_id: int = Path(..., title="The ID of the post to get"),
+    db: Session = Depends(get_db)
 ):
-    return services.update_answer(db, answer_id, content, current_user["id"])
+    # Get a specific post - anyone can view posts
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return post
+# Update and delete - require authentication and user ownership
+@router.put("/posts/{post_id}")
+async def update_post(
+    post_id: int,
+    post_update: dict,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)  # Will raise 401 if not authenticated
+):
+    # Get the post
+    db_post = db.query(Post).filter(Post.id == post_id).first()
+    if db_post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
 
-@router.delete("/answers/{answer_id}")
-def delete_answer(
-    answer_id: int,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    return services.delete_answer(db, answer_id, current_user["id"])
+    # Check if the user is the owner of the post
+    if db_post.user_id != current_user.get("id"):
+        raise HTTPException(status_code=403, detail="You can only update your own posts")
 
-# Like/Unlike routes
-@router.post("/questions/{question_id}/like")
-def like_question(
-    question_id: int,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    return services.like_question(db, question_id, current_user["id"])
+    # Update the post
+    for key, value in post_update.items():
+        if hasattr(db_post, key):
+            setattr(db_post, key, value)
 
-@router.post("/questions/{question_id}/unlike")
-def unlike_question(
-    question_id: int,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    return services.unlike_question(db, question_id, current_user["id"])
+    db.commit()
+    db.refresh(db_post)
+    return db_post
 
-@router.post("/answers/{answer_id}/like")
-def like_answer(
-    answer_id: int,
+@router.delete("/posts/{post_id}")
+async def delete_post(
+    post_id: int,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)  # Will raise 401 if not authenticated
 ):
-    return services.like_answer(db, answer_id, current_user["id"])
+    # Get the post
+    db_post = db.query(Post).filter(Post.id == post_id).first()
+    if db_post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
 
-@router.post("/answers/{answer_id}/unlike")
-def unlike_answer(
-    answer_id: int,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    return services.unlike_answer(db, answer_id, current_user["id"])
+    # Check if the user is the owner of the post
+    if db_post.user_id != current_user.get("id"):
+        raise HTTPException(status_code=403, detail="You can only delete your own posts")
 
-# User's own questions
-@router.get("/my/questions", response_model=List[schemas.Question])
-def get_my_questions(
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    return services.get_questions(db, skip=skip, limit=limit, user_id=current_user["id"])
+    # Delete the post
+    db.delete(db_post)
+    db.commit()
+    return {"message": "Post deleted successfully"}

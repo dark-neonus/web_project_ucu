@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from datetime import datetime
-from typing import List, Optional, Set
+from typing import List, Optional
 
 # Tag schemas
 class TagBase(BaseModel):
@@ -29,7 +29,7 @@ class Answer(AnswerBase):
     user_id: int
     question_id: int
     likes: int = 0
-    
+
     # This will be expanded with user info from auth module
     username: Optional[str] = None
 
@@ -57,10 +57,10 @@ class Question(QuestionBase):
     views: int = 0
     likes: int = 0
     tags: List[Tag] = []
-    
+
     # This will be expanded with user info from auth module
     username: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
 
@@ -79,7 +79,7 @@ class Suggestion(SuggestionBase):
     created_at: datetime
     user_id: int
     question_id: int
-    
+
     # This will be expanded with user info from auth module
     username: Optional[str] = None
 

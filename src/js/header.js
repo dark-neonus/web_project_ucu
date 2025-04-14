@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="dropdown-divider"></div>
                 <a href="${profileLink}" class="dropdown-item">My Profile</a>
-                <a href="${profileLink}/settings" class="dropdown-item">Settings</a>
+                <a href="/auth/settings" class="dropdown-item">Settings</a>
                 <div class="dropdown-divider"></div>
                 <a href="#" class="dropdown-item logout-dropdown-item">Logout</a>
             </div>

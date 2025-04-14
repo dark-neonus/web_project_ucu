@@ -157,3 +157,15 @@ def get_user_data(token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login
         last_name=user.last_name,
         email=user.email,
     )
+
+@router.get("/settings", response_class=HTMLResponse)
+def settings_page(request: Request):
+    # Path to the settings HTML file
+    html_file_path = Path(__file__).parent.parent.parent.parent / "src/pages/settings-page.html"
+
+    # Read the HTML file content
+    if html_file_path.exists():
+        html_content = html_file_path.read_text(encoding="utf-8")
+        return HTMLResponse(content=html_content)
+    else:
+        return HTMLResponse(content="<h1>Settings page not found</h1>", status_code=404)

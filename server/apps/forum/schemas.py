@@ -13,7 +13,7 @@ class Tag(TagBase):
     id: int
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Answer schemas
 class AnswerBase(BaseModel):
@@ -29,12 +29,11 @@ class Answer(AnswerBase):
     user_id: int
     question_id: int
     likes: int = 0
-
     # This will be expanded with user info from auth module
     username: Optional[str] = None
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Question schemas
 class QuestionBase(BaseModel):
@@ -57,12 +56,11 @@ class Question(QuestionBase):
     views: int = 0
     likes: int = 0
     tags: List[Tag] = []
-
     # This will be expanded with user info from auth module
     username: Optional[str] = None
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class QuestionWithAnswers(Question):
     answers: List[Answer] = []
@@ -79,12 +77,11 @@ class Suggestion(SuggestionBase):
     created_at: datetime
     user_id: int
     question_id: int
-
     # This will be expanded with user info from auth module
     username: Optional[str] = None
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Like/Dislike schemas
 class LikeCreate(BaseModel):

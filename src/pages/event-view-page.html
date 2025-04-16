@@ -71,13 +71,13 @@
       <!-- Event Post -->
       <div class="post-container" data-content-type="events">
         {% if event %}
-          <div class="post-header">
+          <div onclick="window.location.href = '/auth/profile/{{ event.author_id}}'" class="post-header">
             <div class="user-info">
               <div class="avatar">
                 <img src="https://via.placeholder.com/40" alt="User avatar">
               </div>
               <div class="user-meta">
-                <p class="username">Author: {{ event.author_username }}</p>
+                <p class="username">{{ event.author_username }}</p>
                 <p class="time">{{ event.date_created }}</p>
               </div>
             </div>
@@ -158,6 +158,6 @@
   <!-- Script -->
   <script type = "module" src="/src/js/auth.js"></script>
   <script type = "module" src="/src/js/header.js"></script>
-  <script src="/src/js/event-view-code.js"></script>
+  <script type = "module" src="/src/js/event-view-code.js"></script>
 </body>
 </html>

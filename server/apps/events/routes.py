@@ -27,27 +27,30 @@ templates = Jinja2Templates(directory="src/pages")
 @router.get("/", response_class=HTMLResponse)
 def events_page(
     request: Request,
-    start: Optional[int] = None,  # Optional query parameter for start index
-    end: Optional[int] = None,    # Optional query parameter for end index
+    start: Optional[int] = None,
+    end: Optional[int] = None,
     db: Session = Depends(get_db),
 ):
     # Query the database for all events, sorted by date_created
-    events = db.query(Event).order_by(Event.date_created).all()
+    db_events = db.query(Event).order_by(Event.date_created).all()
 
     # Apply slicing if start and end are valid
     try:
         if start is not None or end is not None:
-            events = events[start:end]
+            db_events = db_events[start:end]
     except (TypeError, ValueError):
         # If slicing fails due to invalid start/end, return all events
         pass
 
+    # Convert database events to EventResponse objects which include author_username
+    events = [EventResponse.from_orm(event, db) for event in db_events]
+
     # Render the template with the list of events
     return templates.TemplateResponse(
-        "forum-events-page.html",  # Path to the Jinja2 template
+        "forum-events-page.html",
         {
-            "request": request,  # Required for Jinja2 templates
-            "events": events,  # Pass the list of events to the template
+            "request": request,
+            "events": events,  # Now contains processed events with author_username
         },
     )
 
@@ -80,6 +83,7 @@ def create_event(event: EventCreate, token: str = Depends(OAuth2PasswordBearer(t
         description=event.description,
         date_scheduled=event.date_scheduled,
         category=event.category.value if isinstance(event.category, EventCategory) else event.category,
+        location=event.location,
         author_id=event.author_id,
     )
 

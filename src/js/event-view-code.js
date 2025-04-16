@@ -1,7 +1,12 @@
+import {formatEventDates} from './post-format-code.js';
+
 document.addEventListener('DOMContentLoaded', function() {
   // Set up event listeners for the page
+  formatEventDates();
   setupEventListeners();
 });
+
+
 
 function setupEventListeners() {
   // Handle vote button click

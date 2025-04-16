@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tribuna - User Settings</title>
+  <link rel="stylesheet" href="/src/css/main-style.css">
+  <link rel="stylesheet" href="/src/css/user-profile-style.css">
+  <link rel="stylesheet" href="/src/css/settings-style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo" onclick="window.location.href='/'">Tribuna</div>
+      <div class="main-nav">
+        <div class="nav-links">
+          <button onclick="window.location.href='/forum'">Forum</button>
+          <button onclick="window.location.href='/events'">Events</button>
+        </div>
+        <div class="auth-links" id="auth-container">
+          <!-- Auth buttons will be injected via JS -->
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="page-container">
+    <!-- Sidebar Navigation -->
+    <aside class="profile-sidebar">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar"></div>
+        <h3 class="sidebar-username" id="sidebar-username">Loading...</h3>
+        <p class="user-status" id="user-status">Member since Jan 2025</p>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="/auth/profile" id="sidebar-profile-link" class="sidebar-nav-item">
+          <span class="icon icon-user"></span>
+          <span>Profile</span>
+        </a>
+        <a href="/auth/profile#activity" id="sidebar-activity-link" class="sidebar-nav-item">
+          <span class="icon icon-activity"></span>
+          <span>Activity</span>
+        </a>
+        <a href="/auth/settings" class="sidebar-nav-item active">
+          <span class="icon icon-settings"></span>
+          <span>Settings</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="settings-content">
+      <!-- Settings Header -->
+      <section class="section">
+        <div class="section-header">
+          <h2>Account Settings</h2>
+        </div>
+        
+        <form id="settings-form" class="settings-form">
+          <!-- Personal Information Section -->
+          <div class="settings-group">
+            <h3 class="settings-group-title">Personal Information</h3>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" id="first_name" name="first_name" class="form-control">
+              </div>
+              
+              <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" id="last_name" name="last_name" class="form-control">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" class="form-control" readonly>
+              <small class="form-text">Email address cannot be changed</small>
+            </div>
+            
+            <div class="form-group">
+              <label for="bio">Bio</label>
+              <textarea id="bio" name="bio" class="form-control" rows="3" placeholder="Tell us a bit about yourself..."></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="location">Location</label>
+              <input type="text" id="location" name="location" class="form-control" placeholder="City, Country">
+            </div>
+            
+            <div class="form-group">
+              <label for="website">Website</label>
+              <input type="url" id="website" name="website" class="form-control" placeholder="https://yourwebsite.com">
+            </div>
+          </div>
+          
+          <!-- Profile Picture Section -->
+          <div class="settings-group">
+            <h3 class="settings-group-title">Profile Picture</h3>
+            
+            <div class="profile-picture-upload">
+              <div class="current-avatar" id="current-avatar"></div>
+              
+              <div class="upload-controls">
+                <label for="avatar_upload" class="btn btn-secondary">
+                  <span class="icon icon-upload"></span>
+                  <span>Upload New Picture</span>
+                </label>
+                <input type="file" id="avatar_upload" name="avatar_upload" accept="image/*" hidden>
+                
+                <button type="button" id="remove_avatar" class="btn btn-danger">
+                  <span class="icon icon-trash"></span>
+                  <span>Remove Picture</span>
+                </button>
+              </div>
+              
+              <p class="form-text">Recommended size: 400x400 pixels. Max file size: 2MB.</p>
+            </div>
+          </div>
+          
+          <!-- Password Change Section -->
+          <div class="settings-group">
+            <h3 class="settings-group-title">Change Password</h3>
+            
+            <div class="form-group">
+              <label for="current_password">Current Password</label>
+              <input type="password" id="current_password" name="current_password" class="form-control">
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="new_password">New Password</label>
+                <input type="password" id="new_password" name="new_password" class="form-control">
+                <small class="form-text">Must be at least 8 characters</small>
+              </div>
+              
+              <div class="form-group">
+                <label for="confirm_password">Confirm New Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-control">
+              </div>
+            </div>
+          </div>
+          
+          <!-- Notification Preferences -->
+          <div class="settings-group">
+            <h3 class="settings-group-title">Notification Preferences</h3>
+            
+            <div class="checkbox-group">
+              <div class="form-check">
+                <input type="checkbox" id="email_posts" name="email_posts" class="form-check-input">
+                <label for="email_posts" class="form-check-label">Email me when someone replies to my posts</label>
+              </div>
+              
+              <div class="form-check">
+                <input type="checkbox" id="email_events" name="email_events" class="form-check-input">
+                <label for="email_events" class="form-check-label">Email me about upcoming events</label>
+              </div>
+              
+              <div class="form-check">
+                <input type="checkbox" id="email_newsletter" name="email_newsletter" class="form-check-input">
+                <label for="email_newsletter" class="form-check-label">Subscribe to newsletter</label>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Privacy Settings -->
+          <div class="settings-group">
+            <h3 class="settings-group-title">Privacy Settings</h3>
+            
+            <div class="form-group">
+              <label for="profile_visibility">Profile Visibility</label>
+              <select id="profile_visibility" name="profile_visibility" class="form-control">
+                <option value="public">Public - Anyone can view your profile</option>
+                <option value="members">Members Only - Only registered users can view your profile</option>
+                <option value="private">Private - Only you can view your profile</option>
+              </select>
+            </div>
+            
+            <div class="checkbox-group">
+              <div class="form-check">
+                <input type="checkbox" id="show_email" name="show_email" class="form-check-input">
+                <label for="show_email" class="form-check-label">Show my email address on my profile</label>
+              </div>
+              
+              <div class="form-check">
+                <input type="checkbox" id="show_activity" name="show_activity" class="form-check-input" checked>
+                <label for="show_activity" class="form-check-label">Show my activity on my profile</label>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Save & Delete Account Buttons -->
+          <div class="settings-actions">
+            <button type="submit" class="btn btn-primary">
+              <span class="icon icon-save"></span>
+              <span>Save Changes</span>
+            </button>
+            
+            <button type="button" id="delete_account" class="btn btn-danger">
+              <span class="icon icon-trash"></span>
+              <span>Delete Account</span>
+            </button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmation-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Confirm Account Deletion</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.</p>
+        <div class="form-group">
+          <label for="delete_confirmation">Please type "DELETE" to confirm:</label>
+          <input type="text" id="delete_confirmation" class="form-control" placeholder="DELETE">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary close-modal">Cancel</button>
+        <button id="confirm_delete" class="btn btn-danger" disabled>Permanently Delete Account</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/js/auth.js"></script>
+  <script type="module" src="/src/js/header.js"></script>
+  <script type="module" src="/src/js/settings-code.js"></script>
+</body>
+</html>

@@ -83,6 +83,7 @@ def create_event(event: EventCreate, token: str = Depends(OAuth2PasswordBearer(t
         description=event.description,
         date_scheduled=event.date_scheduled,
         category=event.category.value if isinstance(event.category, EventCategory) else event.category,
+        location=event.location,
         author_id=event.author_id,
     )
 

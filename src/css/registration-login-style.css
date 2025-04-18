@@ -213,6 +213,11 @@ body {
   transition: opacity var(--transition-fast);
 }
 
+.password-feedback {
+  margin: 5px 0 15px;
+  font-size: 0.8rem;
+}
+
 .toggle-password:hover {
   opacity: 0.8;
 }

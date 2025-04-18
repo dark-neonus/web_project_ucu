@@ -1,4 +1,157 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Toast notification system
+  const createToast = (message, type = 'error') => {
+    // Remove any existing toasts
+    const existingToast = document.querySelector('.toast-notification');
+    if (existingToast) {
+      existingToast.remove();
+    }
+    
+    // Create toast container
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    
+    // Set icon based on type
+    let icon = '';
+    if (type === 'success') {
+      icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+    } else if (type === 'error') {
+      icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+    } else if (type === 'info') {
+      icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+    }
+    
+    // Create toast content
+    toast.innerHTML = `
+      <div class="toast-icon">${icon}</div>
+      <div class="toast-message">${message}</div>
+      <button class="toast-close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    `;
+    
+    // Add toast to body
+    document.body.appendChild(toast);
+    
+    // Add event listener to close button
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+      toast.classList.add('toast-hidden');
+      setTimeout(() => {
+        toast.remove();
+      }, 300);
+    });
+    
+    // Animate in
+    setTimeout(() => {
+      toast.classList.add('toast-visible');
+    }, 10);
+    
+    // Auto-dismiss after 5 seconds for success messages
+    if (type === 'success') {
+      setTimeout(() => {
+        toast.classList.add('toast-hidden');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, 5000);
+    }
+    
+    return toast;
+  };
+  
+  // Add toast styles to page
+  const style = document.createElement('style');
+  style.textContent = `
+    .toast-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      max-width: 350px;
+      transform: translateX(110%);
+      transition: transform 0.3s ease;
+    }
+    
+    .toast-visible {
+      transform: translateX(0);
+    }
+    
+    .toast-hidden {
+      transform: translateX(110%);
+    }
+    
+    .toast-success {
+      background-color: #10b981;
+    }
+    
+    .toast-error {
+      background-color: #ef4444;
+    }
+    
+    .toast-info {
+      background-color: #3b82f6;
+    }
+    
+    .toast-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .toast-message {
+      flex: 1;
+      font-size: 14px;
+    }
+    
+    .toast-close {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    
+    .toast-close:hover {
+      opacity: 1;
+    }
+    
+    .form-error {
+      color: #fecaca;
+      font-size: 0.75rem;
+      margin-top: 4px;
+      display: block;
+      text-align: left;
+    }
+    
+    .form-input-error {
+      border-color: #ef4444 !important;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spinner {
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+  `;
+  document.head.appendChild(style);
+
   // Toggle password visibility
   document.querySelectorAll('.toggle-password').forEach(button => {
     button.addEventListener('click', function() {
@@ -19,6 +172,15 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.form-input').forEach((input, index) => {
     input.style.cssText = 'opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease';
     setTimeout(() => input.style.cssText = 'opacity: 1; transform: translateY(0); transition: opacity 0.3s ease, transform 0.3s ease', 200 + (index * 100));
+    
+    // Clear error styling when input changes
+    input.addEventListener('input', function() {
+      this.classList.remove('form-input-error');
+      const errorEl = this.parentElement.querySelector('.form-error');
+      if (errorEl) {
+        errorEl.remove();
+      }
+    });
   });
   
   // Form validation and submission
@@ -27,31 +189,99 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const email = document.getElementById('email').value;
+      // Clear previous errors
+      document.querySelectorAll('.form-error').forEach(el => el.remove());
+      document.querySelectorAll('.form-input-error').forEach(el => el.classList.remove('form-input-error'));
+
+      // Validate fields
+      let isValid = true;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       
-      if (!email || !password) {
-        alert('Please fill in all fields');
+      // Email validation
+      if (!email) {
+        const emailInput = document.getElementById('email');
+        emailInput.classList.add('form-input-error');
+        const errorEl = document.createElement('span');
+        errorEl.className = 'form-error';
+        errorEl.textContent = 'Email is required';
+        emailInput.parentElement.appendChild(errorEl);
+        isValid = false;
+      } else {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          const emailInput = document.getElementById('email');
+          emailInput.classList.add('form-input-error');
+          const errorEl = document.createElement('span');
+          errorEl.className = 'form-error';
+          errorEl.textContent = 'Please enter a valid email address';
+          emailInput.parentElement.appendChild(errorEl);
+          isValid = false;
+        }
+      }
+      
+      // Password validation
+      if (!password) {
+        const passwordInput = document.getElementById('password');
+        passwordInput.classList.add('form-input-error');
+        const errorEl = document.createElement('span');
+        errorEl.className = 'form-error';
+        errorEl.textContent = 'Password is required';
+        passwordInput.parentElement.appendChild(errorEl);
+        isValid = false;
+      }
+
+      if (!isValid) {
+        // Focus on the first error
+        const firstError = document.querySelector('.form-input-error');
+        if (firstError) {
+          firstError.focus();
+        }
         return;
       }
 
       try {
+        // Show loading state on button
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML = `
+          <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" stroke-opacity="0.25" stroke-dasharray="32" stroke-dashoffset="0"></circle>
+            <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="16"></circle>
+          </svg>
+          Logging in...
+        `;
+
         const response = await fetch('/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
         });
 
-        const data = await response.json();
+        // Reset button state
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
         
         if (response.ok) {
+          const data = await response.json();
+          // Show success message
+          createToast('Login successful! Redirecting...', 'success');
+          
+          // Store token and redirect
           localStorage.setItem('access_token', data.access_token);
-          window.location.href = '/';
+          
+          // Redirect after a short delay
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
         } else {
-          alert(`Error: ${data.detail}`);
+          const errorData = await response.json();
+          createToast(`Login failed: ${errorData.detail || 'Invalid credentials'}`, 'error');
         }
       } catch (error) {
-        alert('An error occurred. Please try again.');
+        console.error('Error:', error);
+        createToast('Connection error. Please check your internet connection and try again.', 'error');
       }
     });
   }

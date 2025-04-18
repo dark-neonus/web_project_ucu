@@ -8,13 +8,37 @@ from server.apps.forum.routes import router as forum_router
 from server.core.database import engine  # Import your database engine
 from sqlmodel import SQLModel  # Import SQLModel for table creation
 from pathlib import Path
+from server.core.database import create_db_and_tables, drop_db_and_tables
+from server.core.fill_database import fill_db
+from sqlalchemy.sql import text 
+from sqlalchemy import inspect  # Import the inspector to check for tables
 
 def lifespan(app: FastAPI):
     # Startup logic
-    SQLModel.metadata.create_all(engine)
+    print("Checking if the database exists...")
+    try:
+        # Use SQLAlchemy's inspector to check for existing tables
+        with engine.connect() as connection:
+            inspector = inspect(connection)
+            tables = inspector.get_table_names()  # Get a list of all tables in the database
+            if tables:
+                print("Database exists and has tables.")
+            else:
+                print("Database exists but has no tables. Dropping and recreating...")
+                drop_db_and_tables()  # Drop all tables
+                create_db_and_tables()  # Recreate the database and tables
+                print("Database recreated successfully.")
+                fill_db()  # Fill the database with initial data
+    except Exception as e:
+        print(f"Error accessing the database: {e}")
+        print("Dropping and recreating the database...")
+        drop_db_and_tables()  # Drop all tables
+        create_db_and_tables()  # Recreate the database and tables
+        print("Database recreated successfully.")
+        fill_db()  # Fill the database with initial data
+
     yield  # This marks the end of the startup phase and the beginning of the shutdown phase
     # Shutdown logic (if needed)
-
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(

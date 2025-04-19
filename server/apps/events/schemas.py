@@ -15,6 +15,9 @@ class EventCreate(BaseModel):
     category: EventCategory = Field(default=EventCategory.OTHER)
     location: str = Field(default="Unknown")
     author_id: UUID = Field(foreign_key="user.id", nullable=False)
+    # New fields for image support
+    image_path: Optional[str] = None
+    image_caption: Optional[str] = None
 
     @classmethod
     @validator("date_scheduled", pre=True, always=True)
@@ -43,6 +46,9 @@ class EventResponse(BaseModel):
     category: str
     author_id: UUID
     author_username: Optional[str] = None
+    # Add image fields to response
+    image_path: Optional[str] = None
+    image_caption: Optional[str] = None
 
     @classmethod
     def from_orm(cls, event, db: Session):
@@ -67,6 +73,8 @@ class EventResponse(BaseModel):
             category=event.category,
             author_id=event.author_id,
             author_username=author_username,
+            image_path=event.image_path,
+            image_caption=event.image_caption,
         )
 
 class EventListResponse(BaseModel):

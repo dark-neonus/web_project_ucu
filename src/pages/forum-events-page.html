@@ -99,8 +99,10 @@
                   <span class="icon icon-more"></span>
                 </button>
               </div>
+              {% if event.image_path %}
+                <img src="/{{ event.image_path }}" alt="Event image" class="post-image">
+              {% endif %}
               <h3 class="post-title">{{ event.title }}</h3>
-              
               {% if event.description %}
                 <p class="post-excerpt">{{ event.description }}</p>
               {% endif %}

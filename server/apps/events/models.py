@@ -21,3 +21,7 @@ class Event(SQLModel, table=True):
     date_scheduled: datetime = Field(default=None, nullable=True)
     category: str = Field(default=EventCategory.OTHER.value, index=True)
     author_id: UUID = Field(foreign_key="user.id", nullable=False)
+    # New field for image path
+    image_path: str = Field(default=None, nullable=True)
+    # New field for image caption
+    image_caption: str = Field(default=None, max_length=255, nullable=True)

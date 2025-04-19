@@ -31,4 +31,23 @@ export async function adjustUserEventsLink() {
   if (userEventLink.dataset.userId) {
     userEventLink.dataset.userId = currentUserId;
   }
+  
+  // Check if current URL contains "user_events" and extract the user ID from it
+  const currentPath = window.location.pathname;
+  const userEventsMatch = currentPath.match(/\/events\/user_events\/([a-f0-9-]+)/i);
+  
+  // If we're on a user_events page, check if it's for the current user
+  if (userEventsMatch) {
+    const urlUserId = userEventsMatch[1];
+    
+    // Add "active" class if viewing current user's events, otherwise remove it
+    if (urlUserId === currentUserId) {
+      userEventLink.classList.add('active');
+    } else {
+      userEventLink.classList.remove('active');
+    }
+  } else {
+    // Not on a user_events page, so remove the active class
+    userEventLink.classList.remove('active');
+  }
 }

@@ -54,7 +54,7 @@
       </div>
       <div class="menu-section">
         <p class="menu-title">PERSONAL NAVIGATOR</p>
-        <div class="menu-item">
+        <div class="menu-item" id = "user-events-link">
           <span class="menu-icon">◯</span>
           <span>Your events</span>
         </div>
@@ -86,6 +86,11 @@
             </button>
           </div>
           <h2 class="event-title">{{ event.title }}</h2>
+          
+          {% if event.image_path %}
+            <img src="/{{ event.image_path }}" alt="Event image" class="event-image">
+          {% endif %}
+
           <div class="event-content">
             <p>{{ event.description }}</p>
           </div>

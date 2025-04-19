@@ -1,9 +1,11 @@
 import {formatEventDates} from './post-format-code.js';
+import {adjustUserEventsLink} from './user-events.js';
 
 document.addEventListener('DOMContentLoaded', function() {
   // Set up event listeners for the page
   formatEventDates();
   setupEventListeners();
+  adjustUserEventsLink();
 });
 
 

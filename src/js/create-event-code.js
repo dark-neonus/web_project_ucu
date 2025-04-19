@@ -2,8 +2,6 @@ import { getUserId, getAuthToken, isAuthenticated, redirectToLogin } from '/src/
 import { adjustUserEventsLink } from './user-events.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Add toast notification system
-  
   // Check if user is authenticated
   if (!isAuthenticated()) {
     createToast('You must be logged in to create an event.', 'error');
@@ -43,11 +41,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       categorySelect.appendChild(option);
     });
 
-    // Add validation styles to the page
-    addValidationStyles();
 
     // Clear error styling when input changes
     setupInputValidation();
+
+    // Set up image upload functionality
+    setupImageUpload(token);
 
     // Set up form submission handler
     const formButton = document.querySelector('.button-primary');
@@ -65,6 +64,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const dateInput = document.getElementById('event-date').value;
       const location = document.getElementById('event-location').value.trim();
       const category = categorySelect.value;
+      const imageCaption = document.getElementById('image-caption') ? document.getElementById('image-caption').value.trim() : '';
+      const imageInput = document.getElementById('image-upload');
 
       // Validate all fields
       let isValid = true;
@@ -137,16 +138,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const dateScheduled = new Date(dateInput).toISOString();
 
-      // Prepare data for submission
-      const eventData = {
-        title,
-        description,
-        date_scheduled: dateScheduled,
-        location,
-        category,
-        author_id: userId,
-      };
-
       try {
         // Show loading state on button
         const submitButton = formButton;
@@ -160,14 +151,33 @@ document.addEventListener('DOMContentLoaded', async () => {
           Processing...
         `;
 
+        // Create FormData for multipart/form-data submission
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('description', description);
+        formData.append('date_scheduled', dateScheduled);
+        formData.append('location', location);
+        formData.append('category', category);
+        formData.append('author_id', userId);
+        
+        // Add image file if selected
+        if (imageInput && imageInput.files && imageInput.files.length > 0) {
+          formData.append('image_file', imageInput.files[0]);
+          
+          // Add image caption if available
+          if (imageCaption) {
+            formData.append('image_caption', imageCaption);
+          }
+        }
+
         // Send data to the server
         const createResponse = await fetch('/events/create_event', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
+            // Don't set Content-Type header - the browser will set it with the correct boundary for FormData
           },
-          body: JSON.stringify(eventData),
+          body: formData,
         });
 
         // Reset button state
@@ -189,65 +199,165 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    // Add event listeners for any additional functionality
-    const addImageButton = document.querySelector('.button-secondary');
-    addImageButton.addEventListener('click', () => {
-      createToast('Image upload functionality will be implemented in a future update.', 'info');
-    });
-
   } catch (error) {
     console.error('Error in event creation setup:', error);
     createToast('An error occurred. Please log in again.', 'error');
-    setTimeout(() => {
-      redirectToLogin();
-    }, 2000);
   }
 });
 
-// Add validation styles to the page
-function addValidationStyles() {
-  if (!document.getElementById('validation-styles')) {
-    const style = document.createElement('style');
-    style.id = 'validation-styles';
-    style.textContent = `
-      .form-error {
-        color: #fecaca;
-        font-size: 0.75rem;
-        margin-top: 4px;
-        display: block;
-        text-align: left;
+// Set up image upload functionality
+// Set up image upload functionality
+function setupImageUpload(token) {
+  const addImageButton = document.querySelector('.button-secondary');
+  if (!addImageButton) return;
+  
+  // Create a wrapper div to contain both the button and the upload container
+  const uploadWrapper = document.createElement('div');
+  uploadWrapper.className = 'upload-button-wrapper';
+  uploadWrapper.style.position = 'relative';
+  
+  // Replace the button with the wrapper and move the button inside it
+  addImageButton.parentNode.replaceChild(uploadWrapper, addImageButton);
+  uploadWrapper.appendChild(addImageButton);
+  
+  // Create image upload input and caption field if they don't exist
+  if (!document.getElementById('image-upload')) {
+    // Create image upload container - positioned under the button
+    const imageUploadContainer = document.createElement('div');
+    imageUploadContainer.className = 'form-field image-upload-container';
+    imageUploadContainer.style.display = 'none';
+    imageUploadContainer.style.marginTop = '10px';
+    
+    // Container for the upload controls and preview
+    const uploadControlsRow = document.createElement('div');
+    uploadControlsRow.className = 'upload-controls-row';
+    uploadControlsRow.style.display = 'flex';
+    uploadControlsRow.style.alignItems = 'center';
+    uploadControlsRow.style.gap = '10px';
+    uploadControlsRow.style.marginBottom = '10px';
+    
+    // Create file input container (for styling)
+    const fileInputContainer = document.createElement('div');
+    fileInputContainer.className = 'file-input-container';
+    fileInputContainer.style.flexGrow = '1';
+    
+    // Create file input
+    const imageUpload = document.createElement('input');
+    imageUpload.type = 'file';
+    imageUpload.id = 'image-upload';
+    imageUpload.className = 'form-input';
+    imageUpload.accept = 'image/jpeg,image/png,image/gif,image/jpg';
+    
+    // Create image preview - now smaller and inline
+    const imagePreview = document.createElement('div');
+    imagePreview.id = 'image-preview';
+    imagePreview.className = 'image-preview';
+    imagePreview.style.maxWidth = '120px';
+    imagePreview.style.minWidth = '60px';
+    
+    // Create caption input - now more compact
+    const captionContainer = document.createElement('div');
+    captionContainer.className = 'form-field caption-field';
+    captionContainer.style.display = 'none';
+    captionContainer.style.marginTop = '5px';
+    
+    const captionInput = document.createElement('input');
+    captionInput.type = 'text';
+    captionInput.id = 'image-caption';
+    captionInput.className = 'form-input';
+    captionInput.placeholder = 'Image caption (optional)';
+    
+    // Append elements
+    fileInputContainer.appendChild(imageUpload);
+    uploadControlsRow.appendChild(fileInputContainer);
+    uploadControlsRow.appendChild(imagePreview);
+    
+    imageUploadContainer.appendChild(uploadControlsRow);
+    captionContainer.appendChild(captionInput);
+    imageUploadContainer.appendChild(captionContainer);
+    
+    // Add the upload container directly after the button within the wrapper
+    uploadWrapper.appendChild(imageUploadContainer);
+    
+    // Setup image preview functionality
+    imageUpload.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) {
+        imagePreview.innerHTML = '';
+        captionContainer.style.display = 'none';
+        return;
       }
       
-      .form-input-error {
-        border-color: #ef4444 !important;
+      // Show caption input when image is selected
+      captionContainer.style.display = 'block';
+      
+      // Validate file size (max 5MB)
+      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+      if (file.size > MAX_FILE_SIZE) {
+        createToast('Image size must be less than 5MB', 'error');
+        imageUpload.value = '';
+        imagePreview.innerHTML = '';
+        captionContainer.style.display = 'none';
+        return;
       }
       
-      .form-label {
-        display: block;
-        font-size: 0.875rem;
-        font-weight: 500;
-        margin-bottom: 4px;
-        color: var(--text-color);
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+      if (!validTypes.includes(file.type)) {
+        createToast('Only JPG, PNG, and GIF images are allowed', 'error');
+        imageUpload.value = '';
+        imagePreview.innerHTML = '';
+        captionContainer.style.display = 'none';
+        return;
       }
       
-      .form-field {
-        position: relative;
-        margin-bottom: var(--space-md);
-      }
-      
-      /* Animation for form errors */
-      @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        75% { transform: translateX(5px); }
-      }
-      
-      .shake-animation {
-        animation: shake 0.4s ease-in-out;
-      }
-    `;
-    document.head.appendChild(style);
+      // Create image preview - now with a more compact design
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        imagePreview.innerHTML = `
+          <div class="preview-container" style="position: relative; width: 60px; height: 60px;">
+            <img src="${event.target.result}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;" />
+            <button type="button" class="remove-image" style="position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%; background: #ff4d4d; color: white; border: none; font-size: 14px; line-height: 1; cursor: pointer; padding: 0;" title="Remove image">×</button>
+          </div>
+        `;
+        
+        // Add remove button functionality
+        const removeButton = imagePreview.querySelector('.remove-image');
+        removeButton.addEventListener('click', function(e) {
+          e.stopPropagation();
+          imageUpload.value = '';
+          imagePreview.innerHTML = '';
+          captionInput.value = '';
+          captionContainer.style.display = 'none';
+        });
+      };
+      reader.readAsDataURL(file);
+    });
   }
+  
+  // Show/hide image upload on button click
+  addImageButton.addEventListener('click', function(e) {
+    e.preventDefault();
+    const imageUploadContainer = document.querySelector('.image-upload-container');
+    
+    if (imageUploadContainer.style.display === 'none') {
+      imageUploadContainer.style.display = 'block';
+      addImageButton.textContent = 'Cancel';
+    } else {
+      imageUploadContainer.style.display = 'none';
+      document.getElementById('image-preview').innerHTML = '';
+      document.getElementById('image-upload').value = '';
+      
+      // Get caption input and its container
+      const captionInput = document.getElementById('image-caption');
+      const captionContainer = document.querySelector('.caption-field');
+      
+      if (captionInput) captionInput.value = '';
+      if (captionContainer) captionContainer.style.display = 'none';
+      
+      addImageButton.textContent = 'Add Event Image';
+    }
+  });
 }
 
 // Setup input validation listeners
@@ -293,7 +403,6 @@ function displayError(inputElement, errorMessage) {
   
   errorEl.textContent = errorMessage;
 }
-
 
 // Create and display toast notification
 function createToast(message, type = 'error') {

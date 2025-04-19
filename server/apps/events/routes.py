@@ -26,7 +26,7 @@ def events_page(
     db: Session = Depends(get_db),
 ):
     # Query the database for all events, sorted by date_created
-    db_events = db.query(Event).order_by(Event.date_created).all()
+    db_events = db.query(Event).order_by(Event.date_created.desc()).all()
 
     # Apply slicing if start and end are valid
     try:
@@ -138,7 +138,7 @@ def your_events_page(
     db: Session = Depends(get_db)
 ):
 
-    db_events = db.query(Event).filter(Event.author_id == UUID(user_id)).order_by(Event.date_created).all()
+    db_events = db.query(Event).filter(Event.author_id == UUID(user_id)).order_by(Event.date_created.desc()).all()
 
     if start is not None or end is not None:
         try:

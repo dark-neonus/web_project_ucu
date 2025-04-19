@@ -813,6 +813,76 @@ header {
   background-repeat: no-repeat;
   background-position: center;
 }
+/* Toast notification styles */
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  max-width: 350px;
+  transform: translateX(110%);
+  transition: transform 0.3s ease;
+  backdrop-filter: blur(8px);
+}
+
+.toast-visible {
+  transform: translateX(0);
+}
+
+.toast-hidden {
+  transform: translateX(110%);
+}
+
+.toast-success {
+  background-color: rgba(16, 185, 129, 0.95);
+  border-left: 4px solid #059669;
+}
+
+.toast-error {
+  background-color: rgba(239, 68, 68, 0.95);
+  border-left: 4px solid #dc2626;
+}
+
+.toast-info {
+  background-color: rgba(59, 130, 246, 0.95);
+  border-left: 4px solid #2563eb;
+}
+
+.toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
 
 /* SVG Icons */
 .icon-login { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpolyline points='12 6 12 12 16 14'%3E%3C/polyline%3E%3C/svg%3E"); }

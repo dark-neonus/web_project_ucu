@@ -116,8 +116,7 @@ def view_profile_page(user_id: str, request: Request, db: Session = Depends(get_
         email=user.email,
     )
 
-    print(user_id)
-    users_events = db.query(Event).filter(Event.author_id == user_id).all()
+    users_events = db.query(Event).filter(Event.author_id == user_id).order_by(Event.date_created.desc()).all()
     # Convert the events to the EventResponse model
     events_data = [
         EventResponse(
@@ -132,7 +131,6 @@ def view_profile_page(user_id: str, request: Request, db: Session = Depends(get_
         ).dict()
         for event in users_events
     ]
-    print(events_data)
     # Render the template with user data
     return templates.TemplateResponse(
         "user-profile-page.html",  # Path to the Jinja2 template

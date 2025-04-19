@@ -42,13 +42,18 @@
       </div>
       
       <nav class="sidebar-nav">
-        <a href="#profile" class="sidebar-nav-item  active">
+        <a href="#profile" class="sidebar-nav-item active">
           <span class="icon icon-user"></span>
           <span>Profile</span>
         </a>
         <a href="#activity" class="sidebar-nav-item">
           <span class="icon icon-activity"></span>
           <span>Activity</span>
+        </a>
+        <!-- New nav link for user's events -->
+        <a href="/events/user_events/{{ user.id }}" class="sidebar-nav-item">
+          <span class="icon icon-calendar"></span>
+          <span>Events</span>
         </a>
         <a href="/auth/settings" class="sidebar-nav-item">
           <span class="icon icon-settings"></span>
@@ -144,17 +149,14 @@
         </div>
         
         <div class="activity-tabs">
-          <button class="tab-button active" data-tab="posts">Recent Posts</button>
-          <button class="tab-button" data-tab="viewed">Recent Events</button>
+          <button class="tab-button active" data-tab="posts">Recent Events</button>
+          <button class="tab-button" data-tab="viewed">Recent Questions</button>
         </div>
         
         <div class="tab-content active" id="posts-tab">
-          <!-- Output len of events -->
-          <p>Total Events: {{ events|length }}</p>
-          
           {% if events %}
             <div class="activity-list">
-              {% for event in events %}
+              {% for event in events[:3] %}  <!-- Limit to 5 events -->
                 <div class="activity-item">
                   <div class="activity-header">
                     <h4 class="activity-title">{{ event.title }}</h4>
@@ -165,11 +167,13 @@
                 </div>
               {% endfor %}
             </div>
+            {% if events|length > 3 %}  <!-- If there are more than 3 events -->
+              <div class="view-all-container">
+                <a href="/events/user_events/{{ user.id }}" class="btn btn-load-more">View All Events</a>
+              </div>
+            {% endif %}
           {% else %}
-            <p class="no-data-message">No recent posts found.</p>
-          {% endif %}
-          {% if user.recent_posts %}
-            <button class="btn btn-load-more">Load More</button>
+            <p class="no-data-message">No recent events found.</p>
           {% endif %}
         </div>
       </section>

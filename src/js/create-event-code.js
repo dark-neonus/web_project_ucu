@@ -1,4 +1,5 @@
 import { getUserId, getAuthToken, isAuthenticated, redirectToLogin } from '/src/js/auth.js';
+import {adjustUserEventsLink} from './user-events.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Check if user is authenticated
@@ -7,6 +8,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     redirectToLogin();
     return;
   }
+
+  adjustUserEventsLink(); // Adjust the user events link if necessary
 
   try {
     // Get user authentication information

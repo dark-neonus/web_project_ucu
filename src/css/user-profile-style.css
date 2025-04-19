@@ -435,6 +435,7 @@
 .btn-load-more {
   margin-top: var(--space-xl);
   width: 100%;
+  columns: var(--primary-color);
   background-color: var(--bg-light);
   color: var(--text-primary);
   padding: var(--space-md);

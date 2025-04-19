@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, HTTPException, Depends, Header, Request
 from sqlalchemy.orm import Session
 from server.core.database import get_db
 from .models import Event
@@ -9,7 +9,7 @@ from uuid import UUID
 from pathlib import Path
 from server.apps.events.models import EventCategory
 from server.apps.authentication.models import User
-from server.core.security import get_current_user,OAuth2PasswordBearer
+from server.core.security import get_current_user, OAuth2PasswordBearer
 from typing import Optional
 from datetime import datetime
 
@@ -17,12 +17,6 @@ router = APIRouter()
 
 # Set up Jinja2 templates
 templates = Jinja2Templates(directory="src/pages")
-
-
-# @router.get("/events/", response_model=list[EventResponse])
-# def list_events(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-#     events = db.query(Event).offset(skip).limit(limit).all()
-#     return events
 
 @router.get("/", response_class=HTMLResponse)
 def events_page(
@@ -134,3 +128,31 @@ def view_event_page(event_id: str, request: Request, db: Session = Depends(get_d
 @router.get("/categories", response_model=list[str])
 def get_event_categories():
     return [category.value for category in EventCategory]
+
+@router.get("/user_events/{user_id}", response_class=HTMLResponse)
+def your_events_page(
+    request: Request,
+    user_id: str,
+    start: Optional[int] = None,
+    end: Optional[int] = None,
+    db: Session = Depends(get_db)
+):
+
+    db_events = db.query(Event).filter(Event.author_id == UUID(user_id)).order_by(Event.date_created).all()
+
+    if start is not None or end is not None:
+        try:
+            db_events = db_events[start:end]
+        except (TypeError, ValueError):
+            # Log the error and return all events if slicing fails
+            print("Invalid slicing parameters, returning all events")
+
+    # Convert database events to EventResponse objects which include author_username
+    events = [EventResponse.from_orm(event, db) for event in db_events]
+    return templates.TemplateResponse(
+        "user-events-page.html",
+        {
+            "request": request,
+            "events": events,
+        },
+    )

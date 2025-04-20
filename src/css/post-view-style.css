@@ -1,5 +1,9 @@
 /* Event View Styles */
 
+.main-container {
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+}
+
 .event-view {
   display: flex;
   flex-direction: column;

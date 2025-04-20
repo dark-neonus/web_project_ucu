@@ -49,6 +49,8 @@ class EventResponse(BaseModel):
     # Add image fields to response
     image_path: Optional[str] = None
     image_caption: Optional[str] = None
+    status: str = Field(default="open")
+    votes: int = Field(default=0)
 
     @classmethod
     def from_orm(cls, event, db: Session):
@@ -75,6 +77,8 @@ class EventResponse(BaseModel):
             author_username=author_username,
             image_path=event.image_path,
             image_caption=event.image_caption,
+            votes = event.votes,
+            status = event.status
         )
 
 class EventListResponse(BaseModel):

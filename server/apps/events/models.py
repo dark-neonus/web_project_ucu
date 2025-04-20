@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from enum import Enum
 from uuid import uuid4, UUID
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Column, Integer, String
 
 class EventCategory(str, Enum):
     HEALTH="health"
@@ -25,3 +25,5 @@ class Event(SQLModel, table=True):
     image_path: str = Field(default=None, nullable=True)
     # New field for image caption
     image_caption: str = Field(default=None, max_length=255, nullable=True)
+    status: str = Field(default="open")  # can be "open" or "closed"
+    votes: int = Field(default=0)

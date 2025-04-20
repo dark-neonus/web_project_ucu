@@ -56,6 +56,41 @@ def events_page(
         },
     )
 
+@router.get("/api", response_class=JSONResponse)
+def get_events(
+    request: Request,
+    sort: Optional[str] = None,
+    order: Optional[str] = "desc",
+    status: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    # Start with base query
+    query = db.query(Event)
+    
+    # Apply filters
+    if status:
+        query = query.filter(Event.status == status)
+    
+    # Apply sorting
+    if sort == "date_created" or sort is None:
+        if order == "desc":
+            query = query.order_by(Event.date_created.desc())
+        else:
+            query = query.order_by(Event.date_created)
+    elif sort == "votes":
+        if order == "desc":
+            query = query.order_by(Event.votes.desc())
+        else:
+            query = query.order_by(Event.votes)
+    
+    # Execute query
+    db_events = query.all()
+    
+    # Convert to response models
+    events = [EventResponse.from_orm(event, db) for event in db_events]
+    
+    return {"events": [event.dict() for event in events]}
+
 @router.get("/create_event", response_class=HTMLResponse)
 def create_event_page():
     # Path to the registration HTML file
@@ -205,6 +240,7 @@ def your_events_page(
 
     # Convert database events to EventResponse objects which include author_username
     events = [EventResponse.from_orm(event, db) for event in db_events]
+    print(events)
     return templates.TemplateResponse(
         "user-events-page.html",
         {
@@ -212,3 +248,45 @@ def your_events_page(
             "events": events,
         },
     )
+
+@router.get("/user_events_api/{user_id}", response_class=JSONResponse)
+def get_user_events(
+    request: Request,
+    user_id: str,
+    sort: Optional[str] = None,
+    order: Optional[str] = "desc",
+    status: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    # Parse the user_id
+    try:
+        user_uuid = UUID(user_id)
+    except ValueError:
+        return {"events": []}
+    
+    # Start with base query filtered by user_id
+    query = db.query(Event).filter(Event.author_id == user_uuid)
+    
+    # Apply additional filters
+    if status:
+        query = query.filter(Event.status == status)
+    
+    # Apply sorting
+    if sort == "date_created" or sort is None:
+        if order == "desc":
+            query = query.order_by(Event.date_created.desc())
+        else:
+            query = query.order_by(Event.date_created)
+    elif sort == "votes":
+        if order == "desc":
+            query = query.order_by(Event.votes.desc())
+        else:
+            query = query.order_by(Event.votes)
+    
+    # Execute query
+    db_events = query.all()
+    
+    # Convert to response models
+    events = [EventResponse.from_orm(event, db) for event in db_events]
+    
+    return {"events": [event.dict() for event in events]}

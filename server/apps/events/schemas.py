@@ -89,3 +89,10 @@ class EventListResponse(BaseModel):
     events: List[EventResponse]
 
     model_config = {"from_attributes": True}
+
+class EventVoteResponse(BaseModel):
+    event_id: str
+    vote_count: int
+    has_voted: bool
+    
+    model_config = {"from_attributes": True}

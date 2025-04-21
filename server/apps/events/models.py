@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from enum import Enum
 from uuid import uuid4, UUID
-from sqlmodel import SQLModel, Field, Column, Integer, String, DateTime
+from sqlmodel import SQLModel, Field, Column, Integer, String, DateTime, UniqueConstraint
 
 class EventStatus(str, Enum):
     OPEN = "open"
@@ -30,3 +30,15 @@ class Event(SQLModel, table=True):
     image_caption: str = Field(default=None, max_length=255, nullable=True)
     status: str = Field(default=EventStatus.OPEN.value)  # Use enum value instead of "open"
     votes: int = Field(default=0)
+
+class EventVote(SQLModel, table=True):
+    """Model for tracking user votes on events"""
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    event_id: UUID = Field(foreign_key="event.id", nullable=False)
+    user_id: UUID = Field(foreign_key="user.id", nullable=False)
+    date_voted: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    
+    # Add a unique constraint on event_id and user_id to prevent duplicate votes
+    __table_args__ = (
+        UniqueConstraint("event_id", "user_id", name="unique_event_user_vote"),
+    )

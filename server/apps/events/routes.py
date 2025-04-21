@@ -2,8 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends, Header, Request, File, Up
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from server.core.database import get_db
-from .models import Event
-from .schemas import EventCreate, EventResponse, EventListResponse, EventStatus
+from .models import Event, EventVote
+from .schemas import EventCreate, EventResponse, EventListResponse, EventStatus, EventVoteResponse
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from uuid import UUID
@@ -394,3 +394,156 @@ def configure_app_with_schedulers(app: FastAPI):
     
     # Return the configured app
     return app
+
+# Add this to existing router in routes.py file
+@router.post("/vote/{event_id}", response_model=EventVoteResponse)
+async def vote_for_event(
+    event_id: str,
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")),
+    db: Session = Depends(get_db)
+):
+    """
+    Vote for an event. Each user can only vote once per event.
+    Returns the updated vote count and whether the user has voted.
+    """
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    try:
+        # Convert the event_id to UUID
+        event_uuid = UUID(event_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid event ID")
+    
+    # Check if the event exists
+    event = db.query(Event).filter(Event.id == event_uuid).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Check if the user has already voted for this event
+    existing_vote = db.query(EventVote).filter(
+        EventVote.event_id == event_uuid,
+        EventVote.user_id == user.id
+    ).first()
+    
+    if existing_vote:
+        # User has already voted
+        return EventVoteResponse(
+            event_id=event_id,
+            vote_count=event.votes,
+            has_voted=True
+        )
+    
+    # Create a new vote record
+    new_vote = EventVote(
+        event_id=event_uuid,
+        user_id=user.id
+    )
+    
+    # Increment the event's vote count
+    event.votes += 1
+    
+    # Add the new vote to the database and commit changes
+    db.add(new_vote)
+    db.commit()
+    
+    return EventVoteResponse(
+        event_id=event_id,
+        vote_count=event.votes,
+        has_voted=True
+    )
+
+@router.get("/vote/{event_id}/status", response_model=EventVoteResponse)
+async def check_vote_status(
+    event_id: str,
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")),
+    db: Session = Depends(get_db)
+):
+    """
+    Check if the current user has voted for a specific event.
+    """
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    try:
+        # Convert the event_id to UUID
+        event_uuid = UUID(event_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid event ID")
+    
+    # Check if the event exists
+    event = db.query(Event).filter(Event.id == event_uuid).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Check if the user has already voted for this event
+    existing_vote = db.query(EventVote).filter(
+        EventVote.event_id == event_uuid,
+        EventVote.user_id == user.id
+    ).first()
+    
+    return EventVoteResponse(
+        event_id=event_id,
+        vote_count=event.votes,
+        has_voted=existing_vote is not None
+    )
+
+@router.delete("/vote/{event_id}", response_model=EventVoteResponse)
+async def remove_vote_from_event(
+    event_id: str,
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")),
+    db: Session = Depends(get_db)
+):
+    """
+    Remove a user's vote from an event.
+    Returns the updated vote count and vote status.
+    """
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    try:
+        # Convert the event_id to UUID
+        event_uuid = UUID(event_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid event ID")
+    
+    # Check if the event exists
+    event = db.query(Event).filter(Event.id == event_uuid).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Check if the user has already voted for this event
+    existing_vote = db.query(EventVote).filter(
+        EventVote.event_id == event_uuid,
+        EventVote.user_id == user.id
+    ).first()
+    
+    if not existing_vote:
+        # User hasn't voted, nothing to remove
+        return EventVoteResponse(
+            event_id=event_id,
+            vote_count=event.votes,
+            has_voted=False
+        )
+    
+    # Delete the vote record
+    db.delete(existing_vote)
+    
+    # Decrement the event's vote count
+    if event.votes > 0:
+        event.votes -= 1
+    
+    # Commit changes
+    db.commit()
+    
+    return EventVoteResponse(
+        event_id=event_id,
+        vote_count=event.votes,
+        has_voted=False
+    )

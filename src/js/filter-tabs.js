@@ -459,10 +459,6 @@ export function updateEventsDisplay(events, postsContainer, searchTerm = null) {
           <span class="post-tag">${event.category}</span>
           <div class="post-stats">
             <div class="stat">
-              <span class="icon icon-eye"></span>
-              <span>${event.views || 0}</span>
-            </div>
-            <div class="stat">
               <span class="icon icon-message"></span>
               <span>${event.comments || 0}</span>
             </div>

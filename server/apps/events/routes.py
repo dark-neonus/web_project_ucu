@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Header, Request, File, UploadFile, Form, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, Header, Request, File, UploadFile, Form, BackgroundTasks, FastAPI
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from server.core.database import get_db
@@ -13,11 +13,11 @@ from server.apps.authentication.models import User
 from server.core.security import get_current_user, OAuth2PasswordBearer
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 import shutil
 import os
 import uuid
-import asyncio
-import logging
 
 router = APIRouter()
 
@@ -28,6 +28,67 @@ templates = Jinja2Templates(directory="src/pages")
 UPLOAD_DIR = Path("static/uploads/events")
 # Ensure the upload directory exists
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+def update_event_statuses(db: Session):
+    """
+    Update event statuses based on their scheduled date.
+    Events with a past date_scheduled will be marked as 'closed'.
+    """
+    now = datetime.now(timezone.utc)
+    
+    # Find all events with status 'open' and a scheduled date in the past
+    events_to_update = (
+        db.query(Event)
+        .filter(
+            Event.status == EventStatus.OPEN.value,
+            Event.date_scheduled < now
+        )
+        .all()
+    )
+    
+    # Update the status of these events to 'closed'
+    for event in events_to_update:
+        event.status = EventStatus.CLOSED.value
+    
+    # Commit the changes to the database
+    if events_to_update:
+        db.commit()
+        print(f"Updated {len(events_to_update)} events to 'closed' status")
+    
+    return len(events_to_update)
+
+# Create a background task to run the status update function periodically
+def schedule_status_updates(app: FastAPI):
+    """
+    Schedule periodic updates of event statuses.
+    
+    Parameters:
+    - app: The FastAPI application instance
+    """
+    scheduler = BackgroundScheduler()
+    
+    def task():
+        # Correctly get a database session without using a context manager
+        db = next(get_db())
+        try:
+            update_event_statuses(db)
+        finally:
+            db.close()  # Make sure to close the session when done
+    
+    # Run the task every 30 seconds (for testing, you can change it to hours in production)
+    scheduler.add_job(
+        task,
+        IntervalTrigger(hours=1),  # Changed from hours=1 to seconds=30 for testing
+        id="update_event_statuses",
+        name="Update event statuses",
+        replace_existing=True,
+    )
+    
+    # Start the scheduler
+    scheduler.start()
+    
+    # Add the scheduler to the app state to keep a reference
+    app.state.scheduler = scheduler
 
 @router.get("/", response_class=HTMLResponse)
 def events_page(
@@ -326,3 +387,10 @@ def get_user_events(
     events = [EventResponse.from_orm(event, db) for event in db_events]
     
     return {"events": [event.dict() for event in events]}
+
+def configure_app_with_schedulers(app: FastAPI):
+    # Start the event status update scheduler
+    schedule_status_updates(app)
+    
+    # Return the configured app
+    return app

@@ -12,6 +12,7 @@ from server.core.database import create_db_and_tables, drop_db_and_tables
 from server.core.fill_database import fill_db
 from sqlalchemy.sql import text 
 from sqlalchemy import inspect  # Import the inspector to check for tables
+from server.apps.events.routes import configure_app_with_schedulers
 
 def lifespan(app: FastAPI):
     # Startup logic
@@ -56,6 +57,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(auth_router, prefix="/auth", tags=["authentication"])
 app.include_router(events_router, prefix="/events", tags=["events"])
 app.include_router(forum_router, prefix="/forum", tags=["forum"])
+app = configure_app_with_schedulers(app)
 
 # @app.get("/")
 # def read_root():

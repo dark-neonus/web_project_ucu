@@ -9,7 +9,7 @@ from server.apps.authentication.models import User
 from sqlalchemy.orm import Session
 
 class EventStatus(str, Enum):
-    ACTIVE = "active"
+    OPEN = "open"
     CLOSED = "closed"
     CANCELLED = "cancelled"
 class EventCreate(BaseModel):

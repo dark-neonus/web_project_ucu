@@ -4,7 +4,7 @@ from uuid import uuid4, UUID
 from sqlmodel import SQLModel, Field, Column, Integer, String, DateTime
 
 class EventStatus(str, Enum):
-    ACTIVE = "active"
+    OPEN = "open"
     CLOSED = "closed"
     CANCELLED = "cancelled"
 
@@ -28,5 +28,5 @@ class Event(SQLModel, table=True):
     author_id: UUID = Field(foreign_key="user.id", nullable=False)
     image_path: str = Field(default=None, nullable=True)
     image_caption: str = Field(default=None, max_length=255, nullable=True)
-    status: str = Field(default=EventStatus.ACTIVE.value)  # Use enum value instead of "open"
+    status: str = Field(default=EventStatus.OPEN.value)  # Use enum value instead of "open"
     votes: int = Field(default=0)

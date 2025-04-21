@@ -3,7 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel, validator
 from enum import Enum
 from sqlmodel import Field
-from server.apps.events.models import EventCategory
+from server.apps.events.models import EventCategory, Event
 from uuid import uuid4, UUID
 from server.apps.authentication.models import User
 from sqlalchemy.orm import Session
@@ -94,5 +94,43 @@ class EventVoteResponse(BaseModel):
     event_id: str
     vote_count: int
     has_voted: bool
+    
+    model_config = {"from_attributes": True}
+
+class EventRegistrationCreate(BaseModel):
+    event_id: UUID
+    user_id: UUID
+    notes: Optional[str] = None
+
+class EventRegistrationResponse(BaseModel):
+    id: UUID
+    event_id: UUID
+    user_id: UUID
+    registration_time: str
+    attendance_status: str
+    notes: Optional[str] = None
+    event_title: Optional[str] = None
+    event_date: Optional[str] = None
+    
+    @classmethod
+    def from_orm(cls, registration, db: Session):
+        # Get event information
+        event = db.query(Event).filter(Event.id == registration.event_id).first()
+        
+        return cls(
+            id=registration.id,
+            event_id=registration.event_id,
+            user_id=registration.user_id,
+            registration_time=registration.registration_time.isoformat(),
+            attendance_status=registration.attendance_status,
+            notes=registration.notes,
+            event_title=event.title if event else None,
+            event_date=event.date_scheduled.isoformat() if event and event.date_scheduled else None
+        )
+    
+    model_config = {"from_attributes": True}
+
+class EventRegistrationListResponse(BaseModel):
+    registrations: List[EventRegistrationResponse]
     
     model_config = {"from_attributes": True}

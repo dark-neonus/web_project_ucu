@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from enum import Enum
 from uuid import uuid4, UUID
+from typing import Optional
 from sqlmodel import SQLModel, Field, Column, Integer, String, DateTime, UniqueConstraint
 
 class EventStatus(str, Enum):
@@ -41,4 +42,18 @@ class EventVote(SQLModel, table=True):
     # Add a unique constraint on event_id and user_id to prevent duplicate votes
     __table_args__ = (
         UniqueConstraint("event_id", "user_id", name="unique_event_user_vote"),
+    )
+
+class EventRegistration(SQLModel, table=True):
+    """Model for tracking user registrations for events"""
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    event_id: UUID = Field(foreign_key="event.id", nullable=False)
+    user_id: UUID = Field(foreign_key="user.id", nullable=False)
+    registration_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    attendance_status: str = Field(default="registered")  # registered, attended, cancelled
+    notes: Optional[str] = Field(default=None, max_length=500)
+    
+    # Add a unique constraint to prevent duplicate registrations
+    __table_args__ = (
+        UniqueConstraint("event_id", "user_id", name="unique_event_user_registration"),
     )

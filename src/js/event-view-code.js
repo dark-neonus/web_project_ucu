@@ -1,3 +1,5 @@
+// Update the existing file event-view.js or create a new one
+
 import {formatEventDates} from './post-format-code.js';
 import {adjustUserEventsLink} from './user-events-link.js';
 import {getAuthToken} from './auth.js';
@@ -8,7 +10,108 @@ document.addEventListener('DOMContentLoaded', function() {
   setupEventListeners();
   adjustUserEventsLink();
   checkVoteStatus();
+  checkRegistrationStatus();
 });
+
+// New function to check registration status
+async function checkRegistrationStatus() {
+  const eventId = getEventIdFromUrl();
+  if (!eventId) return;
+  
+  const token = getAuthToken();
+  if (!token) return; // User is not logged in
+  
+  try {
+    const response = await fetch(`/events/register/${eventId}/status`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      updateRegistrationUI(data.is_registered);
+    }
+  } catch (error) {
+    console.error('Error checking registration status:', error);
+  }
+}
+
+// Update the UI to reflect registration status
+function updateRegistrationUI(isRegistered) {
+  const joinButton = document.getElementById('event-join-button');
+  
+  if (joinButton) {
+    if (isRegistered) {
+      joinButton.classList.add('registered');
+      joinButton.querySelector('span:last-child').textContent = 'Cancel Registration';
+    } else {
+      joinButton.classList.remove('registered');
+      joinButton.disabled = false;
+      joinButton.style.opacity = '1';
+      joinButton.querySelector('span:last-child').textContent = 'Join Event';
+    }
+  }
+}
+
+// Function to toggle registration status
+async function toggleRegistration(eventId, token) {
+  const joinButton = document.getElementById('event-join-button');
+  const isRegistered = joinButton.classList.contains('registered');
+  
+  try {
+    const response = await fetch(`/events/register/${eventId}`, {
+      method: isRegistered ? 'DELETE' : 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      // If it's a new registration
+      if (!isRegistered) {
+        const data = await response.json();
+        console.log('Registration successful:', data);
+        showNotification('You have registered for this event!');
+      } else {
+        // If it's a cancellation
+        console.log('Registration cancelled');
+        showNotification('Your registration has been cancelled');
+      }
+      
+      // Update the UI
+      updateRegistrationUI(!isRegistered);
+    } else {
+      const errorData = await response.json();
+      console.error('Error updating registration:', errorData);
+      showNotification(errorData.detail || 'Error updating registration', 'error');
+    }
+  } catch (error) {
+    console.error('Error updating registration:', error);
+    showNotification('Error updating registration. Please try again.', 'error');
+  }
+}
+
+// Show a notification message
+function showNotification(message, type = 'success') {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.textContent = message;
+  
+  // Add to page
+  document.body.appendChild(notification);
+  
+  // Remove after 3 seconds
+  setTimeout(() => {
+    notification.classList.add('fade-out');
+    setTimeout(() => {
+      notification.remove();
+    }, 500);
+  }, 3000);
+}
 
 // Check if the user has already voted for this event
 async function checkVoteStatus() {
@@ -82,11 +185,11 @@ async function toggleVote(eventId, token) {
     } else {
       const errorData = await response.json();
       console.error('Error updating vote:', errorData);
-      alert(errorData.detail || 'Error updating vote');
+      showNotification(errorData.detail || 'Error updating vote', 'error');
     }
   } catch (error) {
     console.error('Error updating vote:', error);
-    alert('Error updating vote. Please try again.');
+    showNotification('Error updating vote. Please try again.', 'error');
   }
 }
 
@@ -97,7 +200,7 @@ function setupEventListeners() {
     voteButton.addEventListener('click', async function() {
       const token = getAuthToken();
       if (!token) {
-        alert('Please log in to vote for this event');
+        showNotification('Please log in to vote for this event', 'error');
         return;
       }
       
@@ -109,20 +212,21 @@ function setupEventListeners() {
     });
   }
 
-  // Handle join event button - using ID selector
+  // Handle join event button - updated to use the registration API
   const joinEventButton = document.getElementById('event-join-button');
   if (joinEventButton) {
-    joinEventButton.addEventListener('click', function() {
+    joinEventButton.addEventListener('click', async function() {
       const token = getAuthToken();
       if (!token) {
-        alert('Please log in to join this event');
+        showNotification('Please log in to join this event', 'error');
         return;
       }
       
-      alert('You have registered for this event!');
-      this.disabled = true;
-      this.style.opacity = '0.7';
-      this.querySelector('span:last-child').textContent = 'Joined';
+      const eventId = getEventIdFromUrl();
+      if (!eventId) return;
+      
+      // Use the toggleRegistration function
+      await toggleRegistration(eventId, token);
     });
   }
 
@@ -135,16 +239,16 @@ function setupEventListeners() {
     commentButton.addEventListener('click', function() {
       const token = getAuthToken();
       if (!token) {
-        alert('Please log in to comment');
+        showNotification('Please log in to comment', 'error');
         return;
       }
       
       const commentText = commentInput.value.trim();
       if (commentText) {
-        alert('Comment submitted: ' + commentText);
+        showNotification('Comment submitted: ' + commentText);
         commentInput.value = '';
       } else {
-        alert('Please enter a comment before submitting.');
+        showNotification('Please enter a comment before submitting.', 'error');
       }
     });
   }

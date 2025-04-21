@@ -2,8 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends, Header, Request, File, Up
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from server.core.database import get_db
-from .models import Event, EventVote
-from .schemas import EventCreate, EventResponse, EventListResponse, EventStatus, EventVoteResponse
+from .models import Event, EventVote, EventRegistration
+from .schemas import EventCreate, EventResponse, EventListResponse, EventStatus, EventVoteResponse, EventRegistrationCreate, EventRegistrationResponse, EventRegistrationListResponse
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from uuid import UUID
@@ -18,6 +18,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 import shutil
 import os
 import uuid
+from server.apps.authentication.email.send_email import send_email
 
 router = APIRouter()
 
@@ -552,3 +553,251 @@ async def remove_vote_from_event(
         vote_count=event.votes,
         has_voted=False
     )
+
+@router.post("/register/{event_id}", response_model=EventRegistrationResponse)
+async def register_for_event(
+    event_id: str,
+    background_tasks: BackgroundTasks,
+    notes: Optional[str] = None,
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")),
+    db: Session = Depends(get_db)
+):
+    """
+    Register the current user for an event.
+    Returns the registration details.
+    """
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    try:
+        # Convert the event_id to UUID
+        event_uuid = UUID(event_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid event ID")
+    
+    # Check if the event exists
+    event = db.query(Event).filter(Event.id == event_uuid).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Check if the event is open for registration
+    if event.status != EventStatus.OPEN.value:
+        raise HTTPException(status_code=400, detail="Event is not open for registration")
+    
+    # Check if user is already registered for this event
+    existing_registration = db.query(EventRegistration).filter(
+        EventRegistration.event_id == event_uuid,
+        EventRegistration.user_id == user.id
+    ).first()
+    
+    if existing_registration:
+        raise HTTPException(status_code=400, detail="You are already registered for this event")
+    
+    # Create a new registration
+    new_registration = EventRegistration(
+        event_id=event_uuid,
+        user_id=user.id,
+        notes=notes
+    )
+    
+    try:
+        # Add the registration to the database
+        db.add(new_registration)
+        db.commit()
+        db.refresh(new_registration)
+        
+        # Schedule the email notification in the background
+        if user.email:
+            email_subject = f"Registration Confirmation: {event.title}"
+            email_body = f"""
+            Hi {user.first_name},
+            
+            Thank you for registering for the event: {event.title}
+            
+            Date: {event.date_scheduled.strftime('%Y-%m-%d %H:%M') if event.date_scheduled else 'To be announced'}
+            Location: {event.location}
+            
+            We look forward to seeing you there!
+            
+            Best regards,
+            The Community Events Team
+            Tribuna
+            """
+            background_tasks.add_task(
+                send_email, 
+                recipient_email=user.email,
+                subject=email_subject,
+                body=email_body
+            )
+        
+        # Return the registration data
+        return EventRegistrationResponse.from_orm(new_registration, db)
+    
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="You are already registered for this event")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error registering for event: {str(e)}")
+
+@router.delete("/register/{event_id}", response_model=dict)
+async def cancel_event_registration(
+    event_id: str,
+    background_tasks: BackgroundTasks,
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")),
+    db: Session = Depends(get_db)
+):
+    """
+    Cancel a user's registration for an event.
+    """
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    try:
+        # Convert the event_id to UUID
+        event_uuid = UUID(event_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid event ID")
+    
+    # Find the registration
+    registration = db.query(EventRegistration).filter(
+        EventRegistration.event_id == event_uuid,
+        EventRegistration.user_id == user.id
+    ).first()
+    
+    if not registration:
+        raise HTTPException(status_code=404, detail="Registration not found")
+    
+    # Get the event for the notification
+    event = db.query(Event).filter(Event.id == event_uuid).first()
+    
+    # Delete the registration
+    db.delete(registration)
+    db.commit()
+    
+    # Send cancellation notification
+    if user.email and event:
+        email_subject = f"Registration Cancelled: {event.title}"
+        email_body = f"""
+        Hi {user.first_name},
+        
+        Your registration for the event: {event.title} has been cancelled.
+        
+        If this was unintentional, please register again.
+        
+        Best regards,
+        The Community Events Team
+        """
+        background_tasks.add_task(
+            send_email, 
+            recipient_email=user.email,
+            subject=email_subject,
+            body=email_body
+        )
+    
+    return {"message": "Registration cancelled successfully"}
+
+@router.get("/register/{event_id}/status", response_model=dict)
+async def check_registration_status(
+    event_id: str,
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")),
+    db: Session = Depends(get_db)
+):
+    """
+    Check if the current user is registered for a specific event.
+    """
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    try:
+        # Convert the event_id to UUID
+        event_uuid = UUID(event_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid event ID")
+    
+    # Check if the user is registered for this event
+    registration = db.query(EventRegistration).filter(
+        EventRegistration.event_id == event_uuid,
+        EventRegistration.user_id == user.id
+    ).first()
+    
+    return {
+        "event_id": event_id,
+        "is_registered": registration is not None,
+        "registration_id": str(registration.id) if registration else None,
+        "registration_time": registration.registration_time.isoformat() if registration else None,
+        "attendance_status": registration.attendance_status if registration else None
+    }
+
+@router.get("/user_registrations", response_model=EventRegistrationListResponse)
+async def get_user_registrations(
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")),
+    status: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Get all events the current user is registered for.
+    """
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    # Query for registrations
+    query = db.query(EventRegistration).filter(EventRegistration.user_id == user.id)
+    
+    # Apply status filter if provided
+    if status:
+        query = query.filter(EventRegistration.attendance_status == status)
+    
+    # Execute query
+    registrations = query.all()
+    
+    # Convert to response models
+    registration_responses = [EventRegistrationResponse.from_orm(reg, db) for reg in registrations]
+    
+    return EventRegistrationListResponse(registrations=registration_responses)
+
+@router.get("/event_registrations/{event_id}", response_model=EventRegistrationListResponse)
+async def get_event_registrations(
+    event_id: str,
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all users registered for a specific event.
+    Only the event author or administrators can access this.
+    """
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    try:
+        # Convert the event_id to UUID
+        event_uuid = UUID(event_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid event ID")
+    
+    # Get the event
+    event = db.query(Event).filter(Event.id == event_uuid).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Check if the user is authorized (event author or admin)
+    if str(user.id) != str(event.author_id) and not user.is_admin:
+        raise HTTPException(status_code=403, detail="You are not authorized to view this information")
+    
+    # Get all registrations for this event
+    registrations = db.query(EventRegistration).filter(EventRegistration.event_id == event_uuid).all()
+    
+    # Convert to response models
+    registration_responses = [EventRegistrationResponse.from_orm(reg, db) for reg in registrations]
+    
+    return EventRegistrationListResponse(registrations=registration_responses)

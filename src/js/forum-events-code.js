@@ -1,19 +1,14 @@
-// Import existing functions
+// Main application entry point
 import {formatEventDates} from './post-format-code.js';
-import {adjustUserEventsLink} from './user-events.js';
-import {setupFilterTabs, fetchFilteredEvents} from './filter-tabs.js';
+import {adjustUserEventsLink} from './user-events-link.js';
+import {initializeEventFilters} from './filter-tabs.js';
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Adjust user events link to point to the current user if logged in
   adjustUserEventsLink();
   
-  // Set up filter tabs functionality
-  const filterControls = setupFilterTabs({
-    tabsSelector: '.filter-tab',
-    containerSelector: '.posts-container',
-    defaultFilter: 'new',
-    fetchCallback: fetchFilteredEvents,
-    formatCallback: formatEventDates
-  });
+  // Initialize filter tabs and category filter
+  const filters = initializeEventFilters();
   
   // Make events clickable to view details - delegated event handler
   document.querySelector('.posts-container').addEventListener('click', function(e) {
@@ -29,4 +24,5 @@ document.addEventListener('DOMContentLoaded', function() {
     const eventId = postElement.dataset.id;
     window.location.href = `/events/view_event/${eventId}`;
   });
+  
 });

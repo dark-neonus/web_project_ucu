@@ -756,34 +756,6 @@ header {
   font-size: var(--font-sm);
 }
 
-/* ======= Filters ======= */
-.filter-tabs {
-  display: flex;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-lg);
-  flex-wrap: wrap;
-}
-
-.filter-tab {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-xs) var(--space-md);
-  background-color: var(--bg-light);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-sm);
-  transition: background-color 0.2s ease;
-  margin-bottom: var(--space-xs);
-}
-
-.filter-tab:hover {
-  background-color: var(--medium-gray);
-}
-
-.filter-tab.active {
-  background-color: var(--medium-gray);
-}
-
 /* ======= Icons ======= */
 .icon {
   display: inline-block;

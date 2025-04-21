@@ -62,6 +62,7 @@ def get_events(
     sort: Optional[str] = None,
     order: Optional[str] = "desc",
     status: Optional[str] = None,
+    category: Optional[str] = None,  # Add category parameter
     db: Session = Depends(get_db),
 ):
     # Start with base query
@@ -70,6 +71,10 @@ def get_events(
     # Apply filters
     if status:
         query = query.filter(Event.status == status)
+    
+    # Apply category filter if provided
+    if category:
+        query = query.filter(Event.category == category)
     
     # Apply sorting
     if sort == "date_created" or sort is None:
@@ -240,7 +245,6 @@ def your_events_page(
 
     # Convert database events to EventResponse objects which include author_username
     events = [EventResponse.from_orm(event, db) for event in db_events]
-    print(events)
     return templates.TemplateResponse(
         "user-events-page.html",
         {
@@ -256,6 +260,7 @@ def get_user_events(
     sort: Optional[str] = None,
     order: Optional[str] = "desc",
     status: Optional[str] = None,
+    category: Optional[str] = None,  # Add category parameter 
     db: Session = Depends(get_db),
 ):
     # Parse the user_id
@@ -270,6 +275,10 @@ def get_user_events(
     # Apply additional filters
     if status:
         query = query.filter(Event.status == status)
+    
+    # Apply category filter if provided
+    if category:
+        query = query.filter(Event.category == category)
     
     # Apply sorting
     if sort == "date_created" or sort is None:

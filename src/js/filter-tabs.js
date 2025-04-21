@@ -1,8 +1,14 @@
 /**
- * Filter Tabs Module
- * Handles the setup and functionality of filter tabs for event listings
+ * Enhanced Event Filtering Module
+ * Handles filter tabs and category dropdown filtering for event listings
  */
 import {formatEventDates} from './post-format-code.js';
+
+// Keep track of current filters
+let currentFilters = {
+  tab: 'new',
+  category: null
+};
 
 /**
  * Sets up filter tabs functionality
@@ -15,104 +21,216 @@ import {formatEventDates} from './post-format-code.js';
  * @param {Object} options.additionalParams - Optional additional parameters to pass to fetch callback
  */
 export function setupFilterTabs({
-    tabsSelector = '.filter-tab',
-    containerSelector = '.posts-container',
-    defaultFilter = 'new',
-    fetchCallback,
-    formatCallback = null,
-    additionalParams = {}
-  }) {
-    const filterTabs = document.querySelectorAll(tabsSelector);
-    const contentContainer = document.querySelector(containerSelector);
-    
-    // Track the active filter
-    let activeFilter = defaultFilter;
-    
-    // Add click event listeners to all tabs
-    filterTabs.forEach(tab => {
-      tab.addEventListener('click', function() {
-        // Remove active class from all tabs
-        filterTabs.forEach(t => t.classList.remove('active'));
+  tabsSelector = '.filter-tab',
+  containerSelector = '.posts-container',
+  defaultFilter = 'new',
+  fetchCallback,
+  formatCallback = null,
+  additionalParams = {}
+}) {
+  const filterTabs = document.querySelectorAll(tabsSelector);
+  const contentContainer = document.querySelector(containerSelector);
+  
+  // Initialize the active filter
+  currentFilters.tab = defaultFilter;
+  
+  // Add click event listeners to all tabs
+  filterTabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      // Remove active class from all tabs
+      filterTabs.forEach(t => t.classList.remove('active'));
+      
+      // Add active class to clicked tab
+      this.classList.add('active');
+      
+      // Get filter type from data attribute
+      const filterType = this.dataset.filter;
+      
+      // Only fetch new data if the filter changed
+      if (currentFilters.tab !== filterType) {
+        currentFilters.tab = filterType;
         
-        // Add active class to clicked tab
-        this.classList.add('active');
-        
-        // Get filter type from data attribute
-        const filterType = this.dataset.filter;
-        
-        // Only fetch new data if the filter changed
-        if (activeFilter !== filterType) {
-          activeFilter = filterType;
-          
-          // Call the provided fetch callback with the new filter type
-          if (typeof fetchCallback === 'function') {
-            fetchCallback(filterType, contentContainer, additionalParams);
-          }
+        // Call the provided fetch callback with the new filter type and current category
+        if (typeof fetchCallback === 'function') {
+          const params = { 
+            ...additionalParams, 
+            category: currentFilters.category 
+          };
+          fetchCallback(filterType, contentContainer, params);
         }
-      });
+      }
     });
-    
-    // Initial load - find active tab or default to provided default
-    const initialActiveTab = document.querySelector(`${tabsSelector}.active`);
-    if (initialActiveTab) {
-      fetchCallback(initialActiveTab.dataset.filter, contentContainer, additionalParams);
+  });
+  
+  // Initial load - find active tab or default to provided default
+  const initialActiveTab = document.querySelector(`${tabsSelector}.active`);
+  if (initialActiveTab) {
+    currentFilters.tab = initialActiveTab.dataset.filter;
+    fetchCallback(currentFilters.tab, contentContainer, { 
+      ...additionalParams, 
+      category: currentFilters.category 
+    });
+  } else {
+    // If no active tab is found, set the first one as active
+    const firstTab = document.querySelector(tabsSelector);
+    if (firstTab) {
+      firstTab.classList.add('active');
+      currentFilters.tab = firstTab.dataset.filter;
+      fetchCallback(currentFilters.tab, contentContainer, { 
+        ...additionalParams, 
+        category: currentFilters.category 
+      });
     } else {
-      // If no active tab is found, set the first one as active
-      const firstTab = document.querySelector(tabsSelector);
-      if (firstTab) {
-        firstTab.classList.add('active');
-        fetchCallback(firstTab.dataset.filter, contentContainer, additionalParams);
-      } else {
-        fetchCallback(defaultFilter, contentContainer, additionalParams);
-      }
+      fetchCallback(defaultFilter, contentContainer, { 
+        ...additionalParams, 
+        category: currentFilters.category 
+      });
     }
-    
-    return {
-      getActiveFilter: () => activeFilter,
-      setActiveFilter: (filterType) => {
-        const targetTab = document.querySelector(`${tabsSelector}[data-filter="${filterType}"]`);
-        if (targetTab) {
-          targetTab.click();
-        }
-      },
-      refresh: () => {
-        fetchCallback(activeFilter, contentContainer, additionalParams);
+  }
+  
+  return {
+    getActiveFilter: () => currentFilters.tab,
+    setActiveFilter: (filterType) => {
+      const targetTab = document.querySelector(`${tabsSelector}[data-filter="${filterType}"]`);
+      if (targetTab) {
+        targetTab.click();
       }
-    };
-  }
-  
-  /**
-   * Creates a standard loading indicator
-   * @param {string} message - Message to display
-   * @returns {string} HTML for loading indicator
-   */
-  export function createLoadingIndicator(message = 'Loading...') {
-    return `<div class="loading">${message}</div>`;
-  }
-  
-  /**
-   * Creates an error message display
-   * @param {string} message - Error message to display
-   * @returns {string} HTML for error state
-   */
-  export function createErrorState(message = 'Failed to load content. Please try again later.') {
-    return `<div class="error-state">${message}</div>`;
-  }
-  
-  /**
-   * Creates an empty state display
-   * @param {string} message - Message to display when no content
-   * @returns {string} HTML for empty state
-   */
-  export function createEmptyState(message = 'No content available') {
-    return `<div class="empty-state">${message}</div>`;
-  }
+    },
+    refresh: () => {
+      fetchCallback(currentFilters.tab, contentContainer, { 
+        ...additionalParams, 
+        category: currentFilters.category 
+      });
+    }
+  };
+}
 
 /**
- * Fetches events based on the selected filter
+ * Sets up category filter dropdown
+ * @param {Object} options - Configuration options
+ * @param {string} options.dropdownSelector - CSS selector for category dropdown
+ * @param {string} options.containerSelector - CSS selector for content container
+ * @param {Function} options.fetchCallback - Function to call when filter changes
+ * @param {Object} options.additionalParams - Optional additional parameters to pass to fetch callback
+ */
+export function setupCategoryFilter({
+  dropdownSelector = '#category-filter',
+  containerSelector = '.posts-container',
+  fetchCallback,
+  additionalParams = {}
+}) {
+  const categoryDropdown = document.querySelector(dropdownSelector);
+  const contentContainer = document.querySelector(containerSelector);
+  
+  if (!categoryDropdown) {
+    console.warn('Category dropdown not found:', dropdownSelector);
+    return null;
+  }
+  
+  // Fetch available categories from the API
+  fetchEventCategories(categoryDropdown);
+  
+  // Add change event listener to dropdown
+  categoryDropdown.addEventListener('change', function() {
+    const selectedCategory = this.value === 'all' ? null : this.value;
+    currentFilters.category = selectedCategory;
+    
+    // Call the provided fetch callback with the current filter type and new category
+    if (typeof fetchCallback === 'function') {
+      fetchCallback(currentFilters.tab, contentContainer, { 
+        ...additionalParams, 
+        category: selectedCategory 
+      });
+    }
+  });
+  
+  return {
+    getSelectedCategory: () => currentFilters.category,
+    setSelectedCategory: (category) => {
+      categoryDropdown.value = category || 'all';
+      categoryDropdown.dispatchEvent(new Event('change'));
+    },
+    refresh: () => {
+      fetchEventCategories(categoryDropdown);
+    }
+  };
+}
+
+/**
+ * Fetches available event categories from the API and populates the dropdown
+ * @param {HTMLElement} dropdownElement - The dropdown element to populate
+ */
+function fetchEventCategories(dropdownElement) {
+  fetch('/events/categories', {
+    headers: {
+      'Accept': 'application/json'
+    }
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Network response was not ok: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(categories => {
+      // Store current selection
+      const currentSelection = dropdownElement.value;
+      
+      // Clear existing options (except the first "All" option)
+      while (dropdownElement.options.length > 1) {
+        dropdownElement.remove(1);
+      }
+      
+      // Add each category as an option
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        dropdownElement.appendChild(option);
+      });
+      
+      // Restore previous selection if it exists
+      if (currentSelection && dropdownElement.querySelector(`option[value="${currentSelection}"]`)) {
+        dropdownElement.value = currentSelection;
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching event categories:', error);
+    });
+}
+
+/**
+ * Creates a standard loading indicator
+ * @param {string} message - Message to display
+ * @returns {string} HTML for loading indicator
+ */
+export function createLoadingIndicator(message = 'Loading...') {
+  return `<div class="loading">${message}</div>`;
+}
+
+/**
+ * Creates an error message display
+ * @param {string} message - Error message to display
+ * @returns {string} HTML for error state
+ */
+export function createErrorState(message = 'Failed to load content. Please try again later.') {
+  return `<div class="error-state">${message}</div>`;
+}
+
+/**
+ * Creates an empty state display
+ * @param {string} message - Message to display when no content
+ * @returns {string} HTML for empty state
+ */
+export function createEmptyState(message = 'No content available') {
+  return `<div class="empty-state">${message}</div>`;
+}
+
+/**
+ * Fetches events based on the selected filter and category
  * @param {string} filterType - The type of filter (new, top, closed)
  * @param {HTMLElement} postsContainer - Container element for the posts
- * @param {Object} params - Additional parameters (e.g., user_id for user events)
+ * @param {Object} params - Additional parameters (e.g., user_id, category)
  */
 export function fetchFilteredEvents(filterType, postsContainer, params = {}) {
   // Show loading state
@@ -121,24 +239,39 @@ export function fetchFilteredEvents(filterType, postsContainer, params = {}) {
   // Check if we're on a user events page
   const isUserEvents = params.isUserEvents || false;
   const userId = params.userId || null;
+  const category = params.category || null;
   
   // Construct the API endpoint based on filter type and page context
   let endpoint = isUserEvents && userId ? `/events/user_events_api/${userId}` : '/events/api';
   
-  // Ensure we're matching the API parameters defined in the backend
+  // Build query parameters
+  const queryParams = new URLSearchParams();
+  
+  // Add sort parameters based on filter type
   switch(filterType) {
     case 'new':
-      endpoint += isUserEvents ? '?sort=date_created&order=desc' : '?sort=date_created&order=desc';
+      queryParams.append('sort', 'date_created');
+      queryParams.append('order', 'desc');
       break;
     case 'top':
-      endpoint += isUserEvents ? '?sort=votes&order=desc' : '?sort=votes&order=desc';
+      queryParams.append('sort', 'votes');
+      queryParams.append('order', 'desc');
       break;
     case 'closed':
-      endpoint += isUserEvents ? '?status=closed' : '?status=closed';
+      queryParams.append('status', 'closed');
       break;
     default:
-      endpoint += '?sort=date_created&order=desc';
+      queryParams.append('sort', 'date_created');
+      queryParams.append('order', 'desc');
   }
+  
+  // Add category filter if specified
+  if (category) {
+    queryParams.append('category', category);
+  }
+  
+  // Append query parameters to endpoint
+  endpoint += `?${queryParams.toString()}`;
   
   // Fetch the filtered events
   fetch(endpoint, {
@@ -243,4 +376,43 @@ export function updateEventsDisplay(events, postsContainer) {
   
   // Re-apply event listeners to the new elements
   formatEventDates();
+}
+
+// Main initialization function
+export function initializeEventFilters() {
+  // Check if we're on a user events page by looking for a user-specific identifier in the URL
+  const urlPath = window.location.pathname;
+  const isUserEvents = urlPath.includes('/user_events/');
+  let userId = null;
+  
+  if (isUserEvents) {
+    // Extract user ID from URL path
+    const matches = urlPath.match(/\/user_events\/([^\/]+)/);
+    if (matches && matches[1]) {
+      userId = matches[1];
+    }
+  }
+  
+  // Set up filter tabs
+  const tabFilters = setupFilterTabs({
+    tabsSelector: '.filter-tab',
+    containerSelector: '.posts-container',
+    defaultFilter: 'new',
+    fetchCallback: fetchFilteredEvents,
+    formatCallback: formatEventDates,
+    additionalParams: { isUserEvents, userId }
+  });
+  
+  // Set up category filter
+  const categoryFilter = setupCategoryFilter({
+    dropdownSelector: '#category-filter',
+    containerSelector: '.posts-container',
+    fetchCallback: fetchFilteredEvents,
+    additionalParams: { isUserEvents, userId }
+  });
+  
+  return {
+    tabFilters,
+    categoryFilter
+  };
 }

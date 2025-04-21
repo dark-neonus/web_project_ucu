@@ -127,7 +127,7 @@ def get_events(
     order: Optional[str] = "desc",
     status: Optional[str] = None,
     category: Optional[str] = None,
-    search: Optional[str] = None,  # Add search parameter
+    search: Optional[str] = None,  # Search parameter for title, description, location, or author name
     db: Session = Depends(get_db),
 ):
     # Start with base query
@@ -144,11 +144,16 @@ def get_events(
     # Apply search filter if provided
     if search:
         search_term = f"%{search}%"
-        query = query.filter(
+        # Join with User table for author name search
+        query = query.join(User, Event.author_id == User.id).filter(
             or_(
                 Event.title.ilike(search_term),
                 Event.description.ilike(search_term),
-                Event.location.ilike(search_term)
+                Event.location.ilike(search_term),
+                User.first_name.ilike(search_term),
+                User.last_name.ilike(search_term),
+                # Concatenate first_name and last_name for full name search
+                (User.first_name + ' ' + User.last_name).ilike(search_term)
             )
         )
     

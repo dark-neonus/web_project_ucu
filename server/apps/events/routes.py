@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends, Header, Request, File, UploadFile, Form
+from fastapi import APIRouter, HTTPException, Depends, Header, Request, File, UploadFile, Form, BackgroundTasks
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from server.core.database import get_db
 from .models import Event
-from .schemas import EventCreate, EventResponse, EventListResponse
+from .schemas import EventCreate, EventResponse, EventListResponse, EventStatus
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from uuid import UUID
@@ -11,10 +12,12 @@ from server.apps.events.models import EventCategory
 from server.apps.authentication.models import User
 from server.core.security import get_current_user, OAuth2PasswordBearer
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import shutil
 import os
 import uuid
+import asyncio
+import logging
 
 router = APIRouter()
 
@@ -62,7 +65,8 @@ def get_events(
     sort: Optional[str] = None,
     order: Optional[str] = "desc",
     status: Optional[str] = None,
-    category: Optional[str] = None,  # Add category parameter
+    category: Optional[str] = None,
+    search: Optional[str] = None,  # Add search parameter
     db: Session = Depends(get_db),
 ):
     # Start with base query
@@ -75,6 +79,17 @@ def get_events(
     # Apply category filter if provided
     if category:
         query = query.filter(Event.category == category)
+    
+    # Apply search filter if provided
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            or_(
+                Event.title.ilike(search_term),
+                Event.description.ilike(search_term),
+                Event.location.ilike(search_term)
+            )
+        )
     
     # Apply sorting
     if sort == "date_created" or sort is None:
@@ -260,7 +275,8 @@ def get_user_events(
     sort: Optional[str] = None,
     order: Optional[str] = "desc",
     status: Optional[str] = None,
-    category: Optional[str] = None,  # Add category parameter 
+    category: Optional[str] = None,
+    search: Optional[str] = None,  # Add search parameter
     db: Session = Depends(get_db),
 ):
     # Parse the user_id
@@ -279,6 +295,17 @@ def get_user_events(
     # Apply category filter if provided
     if category:
         query = query.filter(Event.category == category)
+    
+    # Apply search filter if provided
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            or_(
+                Event.title.ilike(search_term),
+                Event.description.ilike(search_term),
+                Event.location.ilike(search_term)
+            )
+        )
     
     # Apply sorting
     if sort == "date_created" or sort is None:

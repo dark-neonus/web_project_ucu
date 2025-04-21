@@ -1,5 +1,4 @@
 // Main application entry point
-import {formatEventDates} from './post-format-code.js';
 import {adjustUserEventsLink} from './user-events-link.js';
 import {initializeEventFilters} from './filter-tabs.js';
 

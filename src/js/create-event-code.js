@@ -1,5 +1,5 @@
 import { getUserId, getAuthToken, isAuthenticated, redirectToLogin } from '/src/js/auth.js';
-import { adjustUserEventsLink } from './user-events.js';
+import { adjustUserEventsLink } from './user-events-link.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Check if user is authenticated
@@ -54,22 +54,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     formButton.addEventListener('click', async (e) => {
       e.preventDefault();
-
+    
       // Clear previous errors
       clearValidationErrors();
-
+    
       // Get form values from the DOM
       const title = document.querySelector('.form-input').value.trim();
       const description = document.querySelector('.form-textarea').value.trim();
-      const dateInput = document.getElementById('event-date').value;
+      const dateTimeInput = document.getElementById('event-date').value;
       const location = document.getElementById('event-location').value.trim();
       const category = categorySelect.value;
       const imageCaption = document.getElementById('image-caption') ? document.getElementById('image-caption').value.trim() : '';
       const imageInput = document.getElementById('image-upload');
-
+    
       // Validate all fields
       let isValid = true;
-
+    
       // Title validation
       if (!title) {
         displayError(document.querySelector('.form-input'), 'Event title is required');
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         displayError(document.querySelector('.form-input'), 'Title must be less than 100 characters');
         isValid = false;
       }
-
+    
       // Description validation
       if (!description) {
         displayError(document.querySelector('.form-textarea'), 'Event description is required');
@@ -90,27 +90,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         displayError(document.querySelector('.form-textarea'), 'Description must be at least 20 characters long');
         isValid = false;
       }
-
-      // Date validation
-      if (!dateInput) {
-        displayError(document.getElementById('event-date'), 'Event date is required');
+    
+      // Date/time validation
+      if (!dateTimeInput) {
+        displayError(document.getElementById('event-date'), 'Event date and time are required');
         isValid = false;
       } else {
-        const selectedDate = new Date(dateInput);
-        const currentDate = new Date();
+        const selectedDateTime = new Date(dateTimeInput);
+        const currentDateTime = new Date();
         
-        // Reset time components to compare just the dates
-        currentDate.setHours(0, 0, 0, 0);
-        
-        if (isNaN(selectedDate.getTime())) {
-          displayError(document.getElementById('event-date'), 'Please enter a valid date');
+        if (isNaN(selectedDateTime.getTime())) {
+          displayError(document.getElementById('event-date'), 'Please enter a valid date and time');
           isValid = false;
-        } else if (selectedDate < currentDate) {
-          displayError(document.getElementById('event-date'), 'Event date cannot be in the past');
+        } else if (selectedDateTime < currentDateTime) {
+          displayError(document.getElementById('event-date'), 'Event cannot be scheduled in the past');
           isValid = false;
         }
       }
-
+    
       // Location validation
       if (!location) {
         displayError(document.getElementById('event-location'), 'Event location is required');
@@ -119,13 +116,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         displayError(document.getElementById('event-location'), 'Location must be at least 3 characters long');
         isValid = false;
       }
-
-      // Category validation
+    
+      // Category validation 
       if (!category) {
         displayError(categorySelect, 'Please select an event category');
         isValid = false;
       }
-
+    
       if (!isValid) {
         // Scroll to the first error
         const firstError = document.querySelector('.form-input-error');
@@ -135,8 +132,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         return;
       }
+    
+      const dateScheduled = dateTimeInput ? new Date(dateTimeInput).toISOString() : '';
 
-      const dateScheduled = new Date(dateInput).toISOString();
 
       try {
         // Show loading state on button

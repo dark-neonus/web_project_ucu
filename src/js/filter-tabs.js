@@ -1,13 +1,14 @@
 /**
  * Enhanced Event Filtering Module
- * Handles filter tabs and category dropdown filtering for event listings
+ * Handles filter tabs, category dropdown, and search functionality for event listings
  */
 import {formatEventDates} from './post-format-code.js';
 
 // Keep track of current filters
 let currentFilters = {
   tab: 'new',
-  category: null
+  category: null,
+  searchTerm: '' // Add search term to current filters
 };
 
 /**
@@ -54,7 +55,8 @@ export function setupFilterTabs({
         if (typeof fetchCallback === 'function') {
           const params = { 
             ...additionalParams, 
-            category: currentFilters.category 
+            category: currentFilters.category,
+            searchTerm: currentFilters.searchTerm // Include search term in params
           };
           fetchCallback(filterType, contentContainer, params);
         }
@@ -68,7 +70,8 @@ export function setupFilterTabs({
     currentFilters.tab = initialActiveTab.dataset.filter;
     fetchCallback(currentFilters.tab, contentContainer, { 
       ...additionalParams, 
-      category: currentFilters.category 
+      category: currentFilters.category,
+      searchTerm: currentFilters.searchTerm // Include search term in initial load
     });
   } else {
     // If no active tab is found, set the first one as active
@@ -78,12 +81,14 @@ export function setupFilterTabs({
       currentFilters.tab = firstTab.dataset.filter;
       fetchCallback(currentFilters.tab, contentContainer, { 
         ...additionalParams, 
-        category: currentFilters.category 
+        category: currentFilters.category,
+        searchTerm: currentFilters.searchTerm // Include search term in initial load
       });
     } else {
       fetchCallback(defaultFilter, contentContainer, { 
         ...additionalParams, 
-        category: currentFilters.category 
+        category: currentFilters.category,
+        searchTerm: currentFilters.searchTerm // Include search term in initial load
       });
     }
   }
@@ -99,7 +104,8 @@ export function setupFilterTabs({
     refresh: () => {
       fetchCallback(currentFilters.tab, contentContainer, { 
         ...additionalParams, 
-        category: currentFilters.category 
+        category: currentFilters.category,
+        searchTerm: currentFilters.searchTerm // Include search term when refreshing
       });
     }
   };
@@ -139,7 +145,8 @@ export function setupCategoryFilter({
     if (typeof fetchCallback === 'function') {
       fetchCallback(currentFilters.tab, contentContainer, { 
         ...additionalParams, 
-        category: selectedCategory 
+        category: selectedCategory,
+        searchTerm: currentFilters.searchTerm // Include search term when category changes
       });
     }
   });
@@ -152,6 +159,80 @@ export function setupCategoryFilter({
     },
     refresh: () => {
       fetchEventCategories(categoryDropdown);
+    }
+  };
+}
+
+/**
+ * Sets up search input functionality for events
+ * @param {Object} options - Configuration options
+ * @param {string} options.searchInputSelector - CSS selector for search input
+ * @param {string} options.searchButtonSelector - CSS selector for search button
+ * @param {string} options.containerSelector - CSS selector for content container
+ * @param {Function} options.fetchCallback - Function to call when search changes
+ * @param {Object} options.additionalParams - Optional additional parameters to pass to fetch callback
+ */
+export function setupSearchInput({
+  searchInputSelector = '#search-input',
+  searchButtonSelector = '#search-button',
+  containerSelector = '.posts-container',
+  fetchCallback,
+  additionalParams = {}
+}) {
+  const searchInput = document.querySelector(searchInputSelector);
+  const searchButton = document.querySelector(searchButtonSelector);
+  const contentContainer = document.querySelector(containerSelector);
+  
+  if (!searchInput) {
+    console.warn('Search input not found:', searchInputSelector);
+    return null;
+  }
+  
+  // Function to perform search
+  const performSearch = () => {
+    const searchTerm = searchInput.value.trim();
+    currentFilters.searchTerm = searchTerm;
+    
+    // Call the provided fetch callback with the current filters
+    if (typeof fetchCallback === 'function') {
+      const params = { 
+        ...additionalParams, 
+        category: currentFilters.category,
+        searchTerm: searchTerm
+      };
+      fetchCallback(currentFilters.tab, contentContainer, params);
+    }
+  };
+  
+  // Add event listener for search button click
+  if (searchButton) {
+    searchButton.addEventListener('click', performSearch);
+  }
+  
+  // Add event listener for Enter key press
+  searchInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      performSearch();
+    }
+  });
+  
+  // Add event listener for input clearing (x button)
+  searchInput.addEventListener('search', function() {
+    // This event triggers when the clear button is clicked in supported browsers
+    performSearch();
+  });
+  
+  return {
+    getSearchTerm: () => currentFilters.searchTerm,
+    setSearchTerm: (term) => {
+      searchInput.value = term || '';
+      currentFilters.searchTerm = term || '';
+      performSearch();
+    },
+    clearSearch: () => {
+      searchInput.value = '';
+      currentFilters.searchTerm = '';
+      performSearch();
     }
   };
 }
@@ -227,19 +308,20 @@ export function createEmptyState(message = 'No content available') {
 }
 
 /**
- * Fetches events based on the selected filter and category
+ * Fetches events based on the selected filter, category, and search term
  * @param {string} filterType - The type of filter (new, top, closed)
  * @param {HTMLElement} postsContainer - Container element for the posts
- * @param {Object} params - Additional parameters (e.g., user_id, category)
+ * @param {Object} params - Additional parameters (e.g., user_id, category, searchTerm)
  */
 export function fetchFilteredEvents(filterType, postsContainer, params = {}) {
   // Show loading state
-  postsContainer.innerHTML = createLoadingIndicator('Loading events...');
+  postsContainer.innerHTML = createLoadingIndicator(params.searchTerm ? 'Searching events...' : 'Loading events...');
   
   // Check if we're on a user events page
   const isUserEvents = params.isUserEvents || false;
   const userId = params.userId || null;
   const category = params.category || null;
+  const searchTerm = params.searchTerm || null;
   
   // Construct the API endpoint based on filter type and page context
   let endpoint = isUserEvents && userId ? `/events/user_events_api/${userId}` : '/events/api';
@@ -270,6 +352,11 @@ export function fetchFilteredEvents(filterType, postsContainer, params = {}) {
     queryParams.append('category', category);
   }
   
+  // Add search term if specified
+  if (searchTerm) {
+    queryParams.append('search', searchTerm);
+  }
+  
   // Append query parameters to endpoint
   endpoint += `?${queryParams.toString()}`;
   
@@ -287,7 +374,7 @@ export function fetchFilteredEvents(filterType, postsContainer, params = {}) {
     })
     .then(data => {
       if (data && data.events) {
-        updateEventsDisplay(data.events, postsContainer);
+        updateEventsDisplay(data.events, postsContainer, searchTerm);
       } else {
         console.error('Invalid data format received:', data);
         postsContainer.innerHTML = createErrorState('Failed to parse events data. Please try again later.');
@@ -303,10 +390,28 @@ export function fetchFilteredEvents(filterType, postsContainer, params = {}) {
  * Updates the events display with the fetched data
  * @param {Array} events - The events to display
  * @param {HTMLElement} postsContainer - Container element for the posts
+ * @param {string} searchTerm - Optional search term used for displaying search results info
  */
-export function updateEventsDisplay(events, postsContainer) {
+export function updateEventsDisplay(events, postsContainer, searchTerm = null) {
+  let containerHTML = '';
+  
+  // Show search results info if search was performed
+  if (searchTerm) {
+    const resultCount = events.length;
+    containerHTML += `
+      <div class="search-results-info">
+        <p>Found ${resultCount} result${resultCount !== 1 ? 's' : ''} for "${searchTerm}"</p>
+        <button class="clear-search-btn" onclick="document.querySelector('#search-input').value = ''; 
+                document.querySelector('#search-input').dispatchEvent(new Event('search'));">
+          Clear Search
+        </button>
+      </div>
+    `;
+  }
+  
   if (!events || events.length === 0) {
-    postsContainer.innerHTML = createEmptyState('No events available');
+    containerHTML += createEmptyState(searchTerm ? 'No events found matching your search' : 'No events available');
+    postsContainer.innerHTML = containerHTML;
     return;
   }
   
@@ -372,13 +477,17 @@ export function updateEventsDisplay(events, postsContainer) {
   });
   
   // Update the container
-  postsContainer.innerHTML = eventsHTML;
+  containerHTML += eventsHTML;
+  postsContainer.innerHTML = containerHTML;
   
-  // Re-apply event listeners to the new elements
+  // Re-apply event listeners to the new elements if needed
   formatEventDates();
 }
 
-// Main initialization function
+/**
+ * Main initialization function that sets up all event filtering functionality
+ * @return {Object} Collection of filter controllers (tabs, category, search)
+ */
 export function initializeEventFilters() {
   // Check if we're on a user events page by looking for a user-specific identifier in the URL
   const urlPath = window.location.pathname;
@@ -393,6 +502,9 @@ export function initializeEventFilters() {
     }
   }
   
+  // Common parameters for all filters
+  const commonParams = { isUserEvents, userId };
+  
   // Set up filter tabs
   const tabFilters = setupFilterTabs({
     tabsSelector: '.filter-tab',
@@ -400,7 +512,7 @@ export function initializeEventFilters() {
     defaultFilter: 'new',
     fetchCallback: fetchFilteredEvents,
     formatCallback: formatEventDates,
-    additionalParams: { isUserEvents, userId }
+    additionalParams: commonParams
   });
   
   // Set up category filter
@@ -408,11 +520,31 @@ export function initializeEventFilters() {
     dropdownSelector: '#category-filter',
     containerSelector: '.posts-container',
     fetchCallback: fetchFilteredEvents,
-    additionalParams: { isUserEvents, userId }
+    additionalParams: commonParams
   });
+  
+  // Set up search input if it exists on the page
+  let searchFilter = null;
+  if (document.querySelector('#search-input')) {
+    searchFilter = setupSearchInput({
+      searchInputSelector: '#search-input',
+      searchButtonSelector: '#search-button',
+      containerSelector: '.posts-container',
+      fetchCallback: fetchFilteredEvents,
+      additionalParams: commonParams
+    });
+    
+    // Check URL for search parameter and apply it
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchParam = urlParams.get('search');
+    if (searchParam) {
+      searchFilter.setSearchTerm(searchParam);
+    }
+  }
   
   return {
     tabFilters,
-    categoryFilter
+    categoryFilter,
+    searchFilter
   };
 }

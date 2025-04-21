@@ -1,13 +1,17 @@
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, validator
+from enum import Enum
 from sqlmodel import Field
 from server.apps.events.models import EventCategory
 from uuid import uuid4, UUID
 from server.apps.authentication.models import User
 from sqlalchemy.orm import Session
 
-
+class EventStatus(str, Enum):
+    ACTIVE = "active"
+    CLOSED = "closed"
+    CANCELLED = "cancelled"
 class EventCreate(BaseModel):
     title: str = Field(max_length=150, index=True)
     description: str = Field(max_length=1000)

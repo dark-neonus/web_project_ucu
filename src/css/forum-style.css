@@ -302,7 +302,7 @@ body {
   font-size: 0.7em;
   position: absolute;
   right: var(--space-sm);
-  top: 50%;
+  top: 40%;
   transform: translateY(-50%);
   pointer-events: none;
 }

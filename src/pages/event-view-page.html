@@ -115,11 +115,11 @@
             <div class="post-stats">
               <div class="stat">
                 <span class="icon icon-message"></span>
-                <span>0</span>
+                <span>{{ event.comment_count }}</span>
               </div>
               <div class="stat vote-stat">
                 <span class="icon icon-arrow-up"></span>
-                <span>0</span>
+                <span>{{ event.vote_count }}</span>
               </div>
             </div>
           </div>
@@ -138,19 +138,24 @@
       </div>
       
       <!-- Comments Section -->
-      <div class="suggestions-section">
+      <div class="comments-section">
         <h2 class="section-title">Comments</h2>
         
-        <div class="suggestion-form">
-          <textarea class="suggestion-input" placeholder="Leave your comment about this event"></textarea>
-          <div class="suggestion-buttons">
-            <button class="suggest-button">
+        <div class="comment-form">
+          <textarea id="comment-input" class="comment-input" placeholder="Leave your comment about this event"></textarea>
+          <div class="comment-buttons">
+            <button id="comment-submit-button" class="comment-button">
               <span>Comment</span>
             </button>
-            <button class="cancel-button">
+            <button id="comment-cancel-button" class="comment-button cancel-button">
               <span>Cancel</span>
             </button>
           </div>
+        </div>
+        
+        <div id="comments-container" class="comments-container">
+          <!-- Comments will be loaded here dynamically -->
+          <div class="loading-comments">Loading comments...</div>
         </div>
       </div>
     </main>

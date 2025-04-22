@@ -2,8 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends, Header, Request, File, Up
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from server.core.database import get_db
-from .models import Event, EventVote, EventRegistration
-from .schemas import EventCreate, EventResponse, EventListResponse, EventStatus, EventVoteResponse, EventRegistrationCreate, EventRegistrationResponse, EventRegistrationListResponse
+from .models import Event, EventVote, EventRegistration, EventComment, CommentUpdate
+from .schemas import EventCreate, EventResponse, EventListResponse, EventStatus, EventVoteResponse, EventRegistrationCreate, EventRegistrationResponse, EventRegistrationListResponse, EventCommentCreate, EventCommentResponse, EventCommentListResponse
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from uuid import UUID
@@ -285,7 +285,10 @@ async def create_event(
 @router.get("/view_event/{event_id}", response_class=HTMLResponse)
 def view_event_page(event_id: str, request: Request, db: Session = Depends(get_db)):
     # Convert the event_id to UUID
-    event_id = UUID(event_id)
+    try:
+        event_id = UUID(event_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid event ID format")
 
     # Query the database for the event
     event = db.query(Event).filter(Event.id == event_id).first()
@@ -294,13 +297,24 @@ def view_event_page(event_id: str, request: Request, db: Session = Depends(get_d
 
     # Convert the event to the EventResponse model
     event_data = EventResponse.from_orm(event, db)
+    
+    # Get comment count
+    comment_count = db.query(EventComment).filter(EventComment.event_id == event_id).count()
+    
+    # Get vote count
+    vote_count = db.query(EventVote).filter(EventVote.event_id == event_id).count()
+
+    # Add these counts to the event data
+    event_dict = event_data.dict()
+    event_dict["comment_count"] = comment_count
+    event_dict["vote_count"] = vote_count
 
     # Render the template with event data
     return templates.TemplateResponse(
         "event-view-page.html",  # Path to the Jinja2 template
         {
             "request": request,  # Required for Jinja2 templates
-            "event": event_data.dict(),  # Pass the event data as a dictionary
+            "event": event_dict,  # Pass the event data with comment and vote counts
         },
     )
 
@@ -801,3 +815,190 @@ async def get_event_registrations(
     registration_responses = [EventRegistrationResponse.from_orm(reg, db) for reg in registrations]
     
     return EventRegistrationListResponse(registrations=registration_responses)
+
+@router.post("/{event_id}/comments", response_model=EventCommentResponse)
+async def create_comment(
+    event_id: str,
+    comment_data: EventCommentCreate,
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")),
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new comment for an event.
+    """
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    try:
+        # Convert the event_id to UUID
+        event_uuid = UUID(event_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid event ID")
+    
+    # Check if the event exists
+    event = db.query(Event).filter(Event.id == event_uuid).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Create new comment
+    new_comment = EventComment(
+        event_id=event_uuid,
+        user_id=user.id,
+        content=comment_data.content,
+        parent_comment_id=comment_data.parent_comment_id
+    )
+    
+    db.add(new_comment)
+    
+    # Increment comments count on the event
+    event.comments_count += 1
+    
+    db.commit()
+    db.refresh(new_comment)
+    
+    return EventCommentResponse.from_orm(new_comment, db)
+
+@router.get("/{event_id}/comments", response_model=EventCommentListResponse)
+async def get_event_comments(
+    event_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Get all comments for a specific event.
+    """
+    try:
+        # Convert the event_id to UUID
+        event_uuid = UUID(event_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid event ID")
+    
+    # Check if the event exists
+    event = db.query(Event).filter(Event.id == event_uuid).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Get all non-deleted comments for this event
+    comments = db.query(EventComment).filter(
+        EventComment.event_id == event_uuid,
+        EventComment.is_deleted == False
+    ).order_by(EventComment.date_created.asc()).all()
+    
+    # Convert to response models
+    comment_responses = [EventCommentResponse.from_orm(comment, db) for comment in comments]
+    
+    return EventCommentListResponse(comments=comment_responses)
+
+# Fixed to use a Pydantic model for the update request
+@router.put("/comments/{comment_id}", response_model=EventCommentResponse)
+async def update_comment(
+    comment_id: str,
+    comment_data: CommentUpdate,  # Using a Pydantic model instead of raw string
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")),
+    db: Session = Depends(get_db)
+):
+    """
+    Update an existing comment.
+    """
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    try:
+        # Convert the comment_id to UUID
+        comment_uuid = UUID(comment_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid comment ID")
+    
+    # Get the comment
+    comment = db.query(EventComment).filter(
+        EventComment.id == comment_uuid,
+        EventComment.is_deleted == False
+    ).first()
+    
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    # Check if the user is the author of the comment
+    if str(comment.user_id) != str(user.id) and not user.is_admin:
+        raise HTTPException(status_code=403, detail="You can only update your own comments")
+    
+    # Update the comment
+    comment.content = comment_data.content
+    comment.date_updated = datetime.now(timezone.utc)
+    
+    # Commit changes
+    db.commit()
+    db.refresh(comment)
+    
+    # Return updated comment
+    return EventCommentResponse.from_orm(comment, db)
+
+@router.delete("/comments/{comment_id}", response_model=dict)
+async def delete_comment(
+    comment_id: str,
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")),
+    db: Session = Depends(get_db)
+):
+    """
+    Soft delete a comment.
+    """
+    # Validate the token and get the current user
+    user = get_current_user(token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    try:
+        # Convert the comment_id to UUID
+        comment_uuid = UUID(comment_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid comment ID")
+    
+    # Get the comment
+    comment = db.query(EventComment).filter(
+        EventComment.id == comment_uuid,
+        EventComment.is_deleted == False
+    ).first()
+    
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    # Check if the user is the author of the comment or an admin
+    if str(comment.user_id) != str(user.id) and not user.is_admin:
+        raise HTTPException(status_code=403, detail="You can only delete your own comments")
+    
+    # Get the associated event
+    event = db.query(Event).filter(Event.id == comment.event_id).first()
+    
+    # Soft delete the comment
+    comment.is_deleted = True
+    # Don't change the content when deleted, just mark as deleted
+    # This preserves the content if undeleting is needed in the future
+    
+    # Decrement the comments count if the event exists
+    if event and event.comments_count > 0:
+        event.comments_count -= 1
+    
+    # Commit changes
+    db.commit()
+    
+    return {"message": "Comment deleted successfully"}
+
+def migrate_comments_count(db: Session):
+    """Update comments count for all events based on existing comments."""
+    events = db.query(Event).all()
+    
+    for event in events:
+        # Count non-deleted comments for this event
+        comment_count = db.query(EventComment).filter(
+            EventComment.event_id == event.id,
+            EventComment.is_deleted == False
+        ).count()
+        
+        # Update the event with the correct count
+        event.comments_count = comment_count
+    
+    db.commit()
+    print(f"Updated comments count for {len(events)} events")

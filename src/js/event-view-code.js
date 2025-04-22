@@ -1,8 +1,9 @@
-// Update the existing file event-view.js or create a new one
+// Update the existing file event-view-code.js
 
 import {formatEventDates} from './post-format-code.js';
 import {adjustUserEventsLink} from './user-events-link.js';
 import {getAuthToken} from './auth.js';
+import {loadEventComments} from './event-comments.js';
 
 document.addEventListener('DOMContentLoaded', function() {
   // Set up event listeners for the page
@@ -11,6 +12,9 @@ document.addEventListener('DOMContentLoaded', function() {
   adjustUserEventsLink();
   checkVoteStatus();
   checkRegistrationStatus();
+  
+  // Load comments for the event
+  loadEventComments();
 });
 
 // New function to check registration status
@@ -211,7 +215,6 @@ function setupEventListeners() {
       await toggleVote(eventId, token);
     });
   }
-
   // Handle join event button - updated to use the registration API
   const joinEventButton = document.getElementById('event-join-button');
   if (joinEventButton) {

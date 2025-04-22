@@ -44,17 +44,25 @@ class EventResponse(BaseModel):
     id: UUID
     title: str
     description: str
-    date_created: str  # Ensure this is a string
+    date_created: str
     location: str = "Unknown"
-    date_scheduled: Optional[str] = None  # Ensure this is a string
+    date_scheduled: Optional[str] = None
     category: str
     author_id: UUID
     author_username: Optional[str] = None
-    # Add image fields to response
     image_path: Optional[str] = None
     image_caption: Optional[str] = None
     status: str = Field(default="open")
     votes: int = Field(default=0)
+    comments_count: int = Field(default=0)  # Add comments counter to response
+
+    @classmethod
+    def from_orm(cls, event, db: Session):
+        # Existing code...
+        return cls(
+            # Existing fields...
+            comments_count=event.comments_count,  # Add to return
+        )
 
     @classmethod
     def from_orm(cls, event, db: Session):
@@ -82,7 +90,8 @@ class EventResponse(BaseModel):
             image_path=event.image_path,
             image_caption=event.image_caption,
             votes = event.votes,
-            status = event.status
+            status = event.status,
+            comments_count = event.comments_count
         )
 
 class EventListResponse(BaseModel):
@@ -132,5 +141,49 @@ class EventRegistrationResponse(BaseModel):
 
 class EventRegistrationListResponse(BaseModel):
     registrations: List[EventRegistrationResponse]
+    
+    model_config = {"from_attributes": True}
+
+class EventCommentCreate(BaseModel):
+    content: str
+    parent_comment_id: Optional[UUID] = None
+
+class EventCommentResponse(BaseModel):
+    id: UUID
+    event_id: UUID
+    user_id: UUID
+    author_username: str
+    content: str
+    date_created: str
+    date_updated: Optional[str] = None
+    parent_comment_id: Optional[UUID] = None
+    
+    @classmethod
+    def from_orm(cls, comment, db: Session):
+        # Query the user to get username
+        user = db.query(User).filter(User.id == comment.user_id).first()
+        
+        # Construct the username
+        author_username = "Unknown User"
+        if user:
+            author_username = user.first_name
+            if user.last_name:
+                author_username += f" {user.last_name}"
+
+        return cls(
+            id=comment.id,
+            event_id=comment.event_id,
+            user_id=comment.user_id,
+            author_username=author_username,
+            content=comment.content,
+            date_created=comment.date_created.isoformat(),
+            date_updated=comment.date_updated.isoformat() if comment.date_updated else None,
+            parent_comment_id=comment.parent_comment_id
+        )
+    
+    model_config = {"from_attributes": True}
+
+class EventCommentListResponse(BaseModel):
+    comments: List[EventCommentResponse]
     
     model_config = {"from_attributes": True}

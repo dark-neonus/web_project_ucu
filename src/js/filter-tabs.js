@@ -460,7 +460,7 @@ export function updateEventsDisplay(events, postsContainer, searchTerm = null) {
           <div class="post-stats">
             <div class="stat">
               <span class="icon icon-message"></span>
-              <span>${event.comments || 0}</span>
+              <span>${event.comments_count || 0}</span>
             </div>
             <div class="stat vote-stat">
               <span class="icon icon-arrow-up"></span>

@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from uuid import uuid4, UUID
 from typing import Optional
+from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, Column, Integer, String, DateTime, UniqueConstraint
 
 class EventStatus(str, Enum):
@@ -29,8 +30,9 @@ class Event(SQLModel, table=True):
     author_id: UUID = Field(foreign_key="user.id", nullable=False)
     image_path: str = Field(default=None, nullable=True)
     image_caption: str = Field(default=None, max_length=255, nullable=True)
-    status: str = Field(default=EventStatus.OPEN.value)  # Use enum value instead of "open"
+    status: str = Field(default=EventStatus.OPEN.value)
     votes: int = Field(default=0)
+    comments_count: int = Field(default=0)  # Add comments counter
 
 class EventVote(SQLModel, table=True):
     """Model for tracking user votes on events"""
@@ -57,3 +59,16 @@ class EventRegistration(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint("event_id", "user_id", name="unique_event_user_registration"),
     )
+
+class EventComment(SQLModel, table=True):
+    """Model for comments on events"""
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    event_id: UUID = Field(foreign_key="event.id", nullable=False)
+    user_id: UUID = Field(foreign_key="user.id", nullable=False)
+    content: str = Field(max_length=1000)
+    date_created: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    date_updated: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    is_deleted: bool = Field(default=False)
+    parent_comment_id: Optional[UUID] = Field(default=None, foreign_key="eventcomment.id", nullable=True)
+class CommentUpdate(BaseModel):
+    content: str

@@ -11,9 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
   setupEventListeners();
   adjustUserEventsLink();
   checkRegistrationStatus();
-  setupCommentFormListeners();
-  // Load comments for the event - this will handle comment form setup internally
-  loadEventComments();
   
   // Don't set up comment form listeners here since it's handled in event-comments.js
 });
@@ -182,75 +179,4 @@ function setupEventListeners() {
     });
   }
 
-}
-
-// Function to setup comment form listeners
-function setupCommentFormListeners() {
-  const commentInput = document.getElementById('comment-input');
-  const submitButton = document.getElementById('comment-submit-button');
-  const cancelButton = document.getElementById('comment-cancel-button');
-  
-  if (!commentInput || !submitButton || !cancelButton) return;
-  
-  // Remove any existing event listeners to prevent duplicates
-  const newSubmitButton = submitButton.cloneNode(true);
-  const newCancelButton = cancelButton.cloneNode(true);
-  
-  if (submitButton.parentNode) {
-    submitButton.parentNode.replaceChild(newSubmitButton, submitButton);
-  }
-  
-  if (cancelButton.parentNode) {
-    cancelButton.parentNode.replaceChild(newCancelButton, cancelButton);
-  }
-  
-  // Submit button click
-  newSubmitButton.addEventListener('click', async () => {
-    const content = commentInput.value.trim();
-    const eventId = getEventIdFromUrl();
-    const parentCommentId = commentInput.getAttribute('data-parent-id') || null;
-    const commentId = commentInput.getAttribute('data-editing-id') || null;
-    
-    if (!content) {
-      createToast('Please enter a comment before submitting.', 'error');
-      return;
-    }
-    
-    if (!eventId) {
-      createToast('Could not determine event ID', 'error');
-      return;
-    }
-    
-    const token = getAuthToken();
-    if (!token) {
-      createToast('Please log in to comment', 'error');
-      return;
-    }
-    
-    try {
-      if (commentId) {
-        // We're editing an existing comment
-        await updateComment(commentId, content);
-      } else {
-        // We're creating a new comment
-        await createComment(eventId, content, parentCommentId);
-      }
-      
-      // Reset the form
-      resetCommentForm();
-      
-      // For new comments or if we can't find the specific comment element, reload all comments
-      if (!commentId) {
-        loadEventComments();
-      }
-    } catch (error) {
-      console.error('Error with comment:', error);
-      createToast('Failed to submit comment. Please try again.', 'error');
-    }
-  });
-  
-  // Cancel button click
-  newCancelButton.addEventListener('click', () => {
-    resetCommentForm();
-  });
 }

@@ -487,7 +487,7 @@
   justify-content: space-between;
   margin-bottom: var(--space-sm);
   padding-bottom: var(--space-xs);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 3px solid rgba(0, 0, 0, 0.05);
 }
 
 .comment-user-info {
@@ -518,7 +518,7 @@
 .comment-username {
   font-weight: 500;
   margin: 0;
-  color: var(--link-color);
+  color: var(--primary-color);
   font-size: var(--font-sm);
 }
 
@@ -576,6 +576,279 @@
   padding: var(--space-lg);
   color: var(--text-muted);
   font-size: var(--font-sm);
+}
+
+/* Enhanced Comment Actions */
+/* Enhanced Comment Actions */
+.comment-actions {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-xs);
+  padding-top: var(--space-xs);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  justify-content: flex-end;
+}
+
+/* Style for action buttons */
+.edit-comment-button,
+.delete-comment-button {
+  background: none;
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  padding: 6px 10px;
+  min-width: 32px;
+  min-height: 32px;
+  transition: all 0.15s ease;
+}
+
+/* Better button separation and hover states */
+.edit-comment-button {
+  margin-right: 8px;
+}
+
+.edit-comment-button:hover {
+  color: var(--primary-color);
+  background-color: rgba(0, 120, 212, 0.08);
+  border-color: var(--primary-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.delete-comment-button:hover {
+  color: #e53935;
+  background-color: rgba(229, 57, 53, 0.08);
+  border-color: #e53935;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Fixed icon styling with proper centering */
+.icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  line-height: 1;
+}
+
+/* Using SVG icons instead of emoji for better consistency */
+.icon-edit {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'%3E%3C/path%3E%3Cpath d='M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'%3E%3C/path%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.icon-delete {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'%3E%3C/path%3E%3Cpath d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6'%3E%3C/path%3E%3Cpath d='M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'%3E%3C/path%3E%3Cline x1='10' y1='11' x2='10' y2='17'%3E%3C/line%3E%3Cline x1='14' y1='11' x2='14' y2='17'%3E%3C/line%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Active state for better feedback */
+.edit-comment-button:active,
+.delete-comment-button:active {
+  transform: translateY(1px);
+}
+
+/*
+ * COMMENT FOOTER
+ * Reply functionality styling
+ */
+ .comment-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-xs);
+  margin-top: var(--space-xs);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Reply button styling */
+.reply-button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 6px 12px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-xs);
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text-secondary);
+  background-color: var(--bg-light);
+  border: 1px solid var(--border-color-light);
+  transition: all 0.2s ease;
+}
+
+.reply-button::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 17 4 12 9 7'%3E%3C/polyline%3E%3Cpath d='M20 18v-2a4 4 0 0 0-4-4H4'%3E%3C/path%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.reply-button:hover {
+  color: var(--primary-color);
+  background-color: rgba(0, 120, 212, 0.08);
+  border-color: var(--primary-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.reply-button:active {
+  transform: translateY(1px);
+}
+
+/* Reply to user styling */
+.reply-to {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.reply-to-username {
+  color: var(--link-color);
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.reply-to-username:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.reply-to::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 17 20 12 15 7'%3E%3C/polyline%3E%3Cpath d='M4 18v-2a4 4 0 0 1 4-4h12'%3E%3C/path%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.6;
+}
+
+/* Enhance comment user info hover */
+.comment-user-info {
+  cursor: pointer;
+  padding: var(--space-xs);
+  border-radius: var(--border-radius-sm);
+  transition: background-color 0.2s ease;
+  margin: calc(-1 * var(--space-xs));
+}
+
+.comment-user-info:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.comment-username {
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.comment-user-info:hover .comment-username {
+  color: var(--primary-color);
+}
+
+/* Toast notification for interactions */
+.comment-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: var(--border-radius-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-size: var(--font-sm);
+  z-index: 10;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+}
+
+.comment-notification.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Reply form styling */
+.reply-form {
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-md);
+  padding: var(--space-sm);
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: var(--border-radius-sm);
+  border-left: 3px solid var(--primary-color);
+}
+
+.reply-form textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: var(--space-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  resize: vertical;
+  font-family: inherit;
+  font-size: var(--font-sm);
+  line-height: 1.5;
+  transition: border-color 0.2s ease;
+  margin-bottom: var(--space-sm);
+}
+
+.reply-form textarea:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+.reply-form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
+
+.reply-submit-button,
+.reply-cancel-button {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reply-submit-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+.reply-submit-button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.reply-cancel-button {
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color-light);
+}
+
+.reply-cancel-button:hover {
+  background-color: var(--border-color-light);
+}
+
+/* Nested comment styling to indicate reply relationship */
+.comment.is-reply {
+  margin-left: var(--space-lg);
+  border-left: 3px solid var(--border-color-light);
 }
 
 /*

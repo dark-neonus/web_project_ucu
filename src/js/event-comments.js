@@ -16,13 +16,11 @@ function updateCommentCount(count) {
   }
 }
 
-// Toast notification system
-function createToast(message, type = 'error') {
-  // Remove any existing toasts
-  const existingToast = document.querySelector('.toast-notification');
-  if (existingToast) {
-    existingToast.remove();
-  }
+// Enhanced toast notification system for comment deletions
+function createToast(message, type = 'error', options = {}) {
+  // Remove any existing toasts of the same type
+  const existingToasts = document.querySelectorAll(`.toast-notification.toast-${type}`);
+  existingToasts.forEach(toast => toast.remove());
   
   // Create toast container
   const toast = document.createElement('div');
@@ -36,18 +34,40 @@ function createToast(message, type = 'error') {
     icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
   } else if (type === 'info') {
     icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+  } else if (type === 'warning') {
+    icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+  }
+  
+  // Add progress bar if auto-dismiss is enabled
+  let progressBar = '';
+  if (options.autoDismiss) {
+    progressBar = '<div class="toast-progress-bar"><div class="toast-progress"></div></div>';
+  }
+  
+  // Add action buttons if provided
+  let actionButtons = '';
+  if (options.actions && options.actions.length) {
+    actionButtons = '<div class="toast-actions">';
+    options.actions.forEach(action => {
+      actionButtons += `<button class="toast-action-button toast-action-${action.type}" data-action="${action.id}">${action.text}</button>`;
+    });
+    actionButtons += '</div>';
   }
   
   // Create toast content
   toast.innerHTML = `
     <div class="toast-icon">${icon}</div>
-    <div class="toast-message">${message}</div>
+    <div class="toast-content">
+      <div class="toast-message">${message}</div>
+      ${actionButtons}
+    </div>
     <button class="toast-close">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="18" y1="6" x2="6" y2="18"></line>
         <line x1="6" y1="6" x2="18" y2="18"></line>
       </svg>
     </button>
+    ${progressBar}
   `;
   
   // Add toast to body
@@ -55,28 +75,154 @@ function createToast(message, type = 'error') {
   
   // Add event listener to close button
   toast.querySelector('.toast-close').addEventListener('click', () => {
-    toast.classList.add('toast-hidden');
-    setTimeout(() => {
-      toast.remove();
-    }, 300);
+    dismissToast(toast);
   });
+  
+  // Add event listeners to action buttons if any
+  if (options.actions && options.actions.length) {
+    toast.querySelectorAll('.toast-action-button').forEach(button => {
+      button.addEventListener('click', () => {
+        const actionId = button.getAttribute('data-action');
+        const action = options.actions.find(a => a.id === actionId);
+        if (action && action.callback) {
+          action.callback();
+        }
+        dismissToast(toast);
+      });
+    });
+  }
   
   // Animate in
   setTimeout(() => {
     toast.classList.add('toast-visible');
+    
+    // Start progress animation if auto-dismiss is enabled
+    if (options.autoDismiss) {
+      const progressElement = toast.querySelector('.toast-progress');
+      if (progressElement) {
+        progressElement.style.transition = `width ${options.autoDismiss}ms linear`;
+        progressElement.style.width = '0%';
+      }
+    }
   }, 10);
   
-  // Auto-dismiss after 5 seconds for success messages
-  if (type === 'success') {
+  // Auto-dismiss after specified time if enabled
+  if (options.autoDismiss) {
     setTimeout(() => {
-      toast.classList.add('toast-hidden');
-      setTimeout(() => {
-        toast.remove();
-      }, 300);
-    }, 5000);
+      dismissToast(toast);
+    }, options.autoDismiss);
   }
   
   return toast;
+}
+
+function dismissToast(toast) {
+  toast.classList.remove('toast-visible');
+  toast.classList.add('toast-hidden');
+  setTimeout(() => {
+    toast.remove();
+  }, 300);
+}
+
+// Function to show a deletion confirmation toast
+function showDeleteConfirmationToast(commentId) {
+  return createToast('Delete this comment?', 'warning', {
+    autoDismiss: 8000,
+    actions: [
+      {
+        id: 'cancel',
+        text: 'Cancel',
+        type: 'secondary',
+        callback: () => {
+          // Just close the toast
+        }
+      },
+      {
+        id: 'delete',
+        text: 'Delete',
+        type: 'danger',
+        callback: () => {
+          // Proceed with deletion
+          performCommentDeletion(commentId);
+        }
+      }
+    ]
+  });
+}
+
+// Function to perform the actual comment deletion
+async function performCommentDeletion(commentId) {
+  const token = getAuthToken();
+  if (!token) {
+    createToast('Please log in to delete comments', 'error');
+    return;
+  }
+  
+  // Show a loading toast
+  const loadingToast = createToast('Deleting comment...', 'info');
+  
+  try {
+    const response = await fetch(`/events/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    // Dismiss the loading toast
+    dismissToast(loadingToast);
+    
+    if (response.ok) {
+      createToast('Comment deleted successfully', 'success', { autoDismiss: 5000 });
+      
+      // Get the current count and decrement it
+      const commentCountElement = document.querySelector('.post-stats .stat:first-child span:last-child');
+      if (commentCountElement) {
+        const currentCount = parseInt(commentCountElement.textContent) || 0;
+        if (currentCount > 0) {
+          updateCommentCount(currentCount - 1);
+        }
+      }
+      
+      // Add slide-up animation and remove the comment from the DOM
+      const commentElement = document.querySelector(`.comment[data-comment-id="${commentId}"]`);
+      if (commentElement) {
+        commentElement.style.transition = 'all 0.5s ease';
+        commentElement.style.overflow = 'hidden';
+        commentElement.style.opacity = '0';
+        commentElement.style.maxHeight = '0';
+        commentElement.style.marginBottom = '0';
+        commentElement.style.paddingTop = '0';
+        commentElement.style.paddingBottom = '0';
+        
+        setTimeout(() => {
+          commentElement.remove();
+          
+          // If this was the last comment, show the no comments message
+          const remainingComments = document.querySelectorAll('.comment').length;
+          if (remainingComments === 0) {
+            const commentsContainer = document.getElementById('comments-container');
+            if (commentsContainer) {
+              commentsContainer.innerHTML = '<div class="no-comments">No comments yet. Be the first to comment!</div>';
+            }
+          }
+        }, 500);
+      } else {
+        // If we can't find the element, reload all comments
+        loadEventComments();
+      }
+    } else {
+      try {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to delete comment');
+      } catch (parseError) {
+        throw new Error('Failed to delete comment: Server error');
+      }
+    }
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    createToast(error.message || 'Failed to delete comment', 'error', { autoDismiss: 5000 });
+  }
 }
 
 // Function to load comments for the current event
@@ -110,7 +256,7 @@ async function loadEventComments() {
 }
 
 // Function to render comments in the comments container
-function renderComments(comments) {
+async function renderComments(comments) {
   const commentsContainer = document.getElementById('comments-container');
   
   if (!commentsContainer) return;
@@ -123,15 +269,18 @@ function renderComments(comments) {
   // Clear loading message
   commentsContainer.innerHTML = '';
   
+  // Get current user ID once for all comments
+  const currentUserId = await getUserId();
+  
   // Create comment elements
-  comments.forEach(comment => {
-    const commentElement = createCommentElement(comment);
+  for (const comment of comments) {
+    const commentElement = await createCommentElement(comment, currentUserId);
     commentsContainer.appendChild(commentElement);
-  });
+  }
 }
 
 // Function to create a comment element
-function createCommentElement(comment) {
+function createCommentElement(comment, currentUserId) {
   const commentDiv = document.createElement('div');
   commentDiv.className = 'comment';
   commentDiv.setAttribute('data-comment-id', comment.id);
@@ -142,10 +291,9 @@ function createCommentElement(comment) {
   const isoDate = formatISODate(comment.date_created);
   
   // Check if the current user is the author
-  const currentUserId = getUserId();
-  const isAuthor = comment.user_id === currentUserId;
-  
-  // Add reply-to info if this is a reply
+  const isAuthor = String(comment.user_id).trim() === String(currentUserId).trim();
+  console.log(isAuthor);
+
   let replyToHtml = '';
   if (comment.parent_comment_author) {
     replyToHtml = `
@@ -155,7 +303,7 @@ function createCommentElement(comment) {
       </div>
     `;
   }
-  
+
   // Create comment HTML structure
   commentDiv.innerHTML = `
     <div class="comment-header">
@@ -206,11 +354,11 @@ function addCommentActionListeners(commentDiv, comment) {
     });
   }
   
-  // Delete button
+  // Delete button - UPDATED to use the new confirmation toast
   const deleteButton = commentDiv.querySelector('.delete-comment-button');
   if (deleteButton) {
     deleteButton.addEventListener('click', () => {
-      deleteComment(comment.id);
+      showDeleteConfirmationToast(comment.id);
     });
   }
   
@@ -222,7 +370,6 @@ function addCommentActionListeners(commentDiv, comment) {
     });
   }
 }
-
 // Function to setup comment form listeners
 function setupCommentFormListeners() {
   const commentInput = document.getElementById('comment-input');
@@ -396,7 +543,7 @@ async function updateComment(commentId, content) {
   }
 }
 
-// Function to delete a comment
+// IMPROVED: Function to delete a comment with enhanced error handling and UI feedback
 async function deleteComment(commentId) {
   if (!confirm('Are you sure you want to delete this comment?')) {
     return;
@@ -431,7 +578,22 @@ async function deleteComment(commentId) {
       // Remove the comment from the DOM
       const commentElement = document.querySelector(`.comment[data-comment-id="${commentId}"]`);
       if (commentElement) {
-        commentElement.remove();
+        // Add a fade-out animation before removing
+        commentElement.style.transition = 'opacity 0.3s ease';
+        commentElement.style.opacity = '0';
+        
+        setTimeout(() => {
+          commentElement.remove();
+          
+          // If this was the last comment, show the no comments message
+          const remainingComments = document.querySelectorAll('.comment').length;
+          if (remainingComments === 0) {
+            const commentsContainer = document.getElementById('comments-container');
+            if (commentsContainer) {
+              commentsContainer.innerHTML = '<div class="no-comments">No comments yet. Be the first to comment!</div>';
+            }
+          }
+        }, 300);
       } else {
         // If we can't find the element, reload all comments
         loadEventComments();
@@ -450,7 +612,29 @@ async function deleteComment(commentId) {
   }
 }
 
-// Function to start editing a comment
+function scrollToCommentFormWithOffset() {
+  const commentForm = document.querySelector('.comment-form') || document.getElementById('comment-input').closest('form');
+  
+  if (!commentForm) return;
+  
+  // Get the viewport height
+  const viewportHeight = window.innerHeight;
+  
+  // Calculate position to scroll to
+  const rect = commentForm.getBoundingClientRect();
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  
+  // Position the form about 30% from the top of the viewport
+  const targetPosition = rect.top + scrollTop - (viewportHeight * 0.3);
+  
+  // Smooth scroll to the calculated position
+  window.scrollTo({
+    top: targetPosition,
+    behavior: 'smooth'
+  });
+}
+
+// Update the startEditing function
 function startEditing(comment) {
   const commentInput = document.getElementById('comment-input');
   const submitButton = document.getElementById('comment-submit-button');
@@ -475,11 +659,11 @@ function startEditing(comment) {
   // Focus the input
   commentInput.focus();
   
-  // Scroll to the comment form
-  commentInput.scrollIntoView({ behavior: 'smooth' });
+  // Scroll to the comment form with better positioning
+  scrollToCommentFormWithOffset();
 }
 
-// Function to start replying to a comment
+// Update the startReply function
 function startReply(comment) {
   const commentInput = document.getElementById('comment-input');
   const submitButton = document.getElementById('comment-submit-button');
@@ -512,8 +696,8 @@ function startReply(comment) {
   // Focus the input
   commentInput.focus();
   
-  // Scroll to the comment form
-  commentInput.scrollIntoView({ behavior: 'smooth' });
+  // Scroll to the comment form with better positioning
+  scrollToCommentFormWithOffset();
 }
 
 // Function to create a reply indicator element if it doesn't exist

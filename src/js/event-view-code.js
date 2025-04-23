@@ -10,11 +10,12 @@ document.addEventListener('DOMContentLoaded', function() {
   formatEventDates();
   setupEventListeners();
   adjustUserEventsLink();
-  checkVoteStatus();
   checkRegistrationStatus();
-  
-  // Load comments for the event
+  setupCommentFormListeners();
+  // Load comments for the event - this will handle comment form setup internally
   loadEventComments();
+  
+  // Don't set up comment form listeners here since it's handled in event-comments.js
 });
 
 // New function to check registration status
@@ -78,11 +79,9 @@ async function toggleRegistration(eventId, token) {
       if (!isRegistered) {
         const data = await response.json();
         console.log('Registration successful:', data);
-        showNotification('You have registered for this event!');
       } else {
         // If it's a cancellation
         console.log('Registration cancelled');
-        showNotification('Your registration has been cancelled');
       }
       
       // Update the UI
@@ -90,55 +89,9 @@ async function toggleRegistration(eventId, token) {
     } else {
       const errorData = await response.json();
       console.error('Error updating registration:', errorData);
-      showNotification(errorData.detail || 'Error updating registration', 'error');
     }
   } catch (error) {
     console.error('Error updating registration:', error);
-    showNotification('Error updating registration. Please try again.', 'error');
-  }
-}
-
-// Show a notification message
-function showNotification(message, type = 'success') {
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  notification.textContent = message;
-  
-  // Add to page
-  document.body.appendChild(notification);
-  
-  // Remove after 3 seconds
-  setTimeout(() => {
-    notification.classList.add('fade-out');
-    setTimeout(() => {
-      notification.remove();
-    }, 500);
-  }, 3000);
-}
-
-// Check if the user has already voted for this event
-async function checkVoteStatus() {
-  const eventId = getEventIdFromUrl();
-  if (!eventId) return;
-  
-  const token = getAuthToken();
-  if (!token) return; // User is not logged in
-  
-  try {
-    const response = await fetch(`/events/vote/${eventId}/status`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      updateVoteUI(data.vote_count, data.has_voted);
-    }
-  } catch (error) {
-    console.error('Error checking vote status:', error);
   }
 }
 
@@ -189,11 +142,9 @@ async function toggleVote(eventId, token) {
     } else {
       const errorData = await response.json();
       console.error('Error updating vote:', errorData);
-      showNotification(errorData.detail || 'Error updating vote', 'error');
     }
   } catch (error) {
     console.error('Error updating vote:', error);
-    showNotification('Error updating vote. Please try again.', 'error');
   }
 }
 
@@ -204,7 +155,6 @@ function setupEventListeners() {
     voteButton.addEventListener('click', async function() {
       const token = getAuthToken();
       if (!token) {
-        showNotification('Please log in to vote for this event', 'error');
         return;
       }
       
@@ -221,7 +171,6 @@ function setupEventListeners() {
     joinEventButton.addEventListener('click', async function() {
       const token = getAuthToken();
       if (!token) {
-        showNotification('Please log in to join this event', 'error');
         return;
       }
       
@@ -233,32 +182,75 @@ function setupEventListeners() {
     });
   }
 
-  // Handle comment form - using ID selectors
-  const commentButton = document.getElementById('comment-submit-button');
-  const cancelButton = document.getElementById('comment-cancel-button');
-  const commentInput = document.getElementById('comment-input');
+}
 
-  if (commentButton) {
-    commentButton.addEventListener('click', function() {
-      const token = getAuthToken();
-      if (!token) {
-        showNotification('Please log in to comment', 'error');
-        return;
+// Function to setup comment form listeners
+function setupCommentFormListeners() {
+  const commentInput = document.getElementById('comment-input');
+  const submitButton = document.getElementById('comment-submit-button');
+  const cancelButton = document.getElementById('comment-cancel-button');
+  
+  if (!commentInput || !submitButton || !cancelButton) return;
+  
+  // Remove any existing event listeners to prevent duplicates
+  const newSubmitButton = submitButton.cloneNode(true);
+  const newCancelButton = cancelButton.cloneNode(true);
+  
+  if (submitButton.parentNode) {
+    submitButton.parentNode.replaceChild(newSubmitButton, submitButton);
+  }
+  
+  if (cancelButton.parentNode) {
+    cancelButton.parentNode.replaceChild(newCancelButton, cancelButton);
+  }
+  
+  // Submit button click
+  newSubmitButton.addEventListener('click', async () => {
+    const content = commentInput.value.trim();
+    const eventId = getEventIdFromUrl();
+    const parentCommentId = commentInput.getAttribute('data-parent-id') || null;
+    const commentId = commentInput.getAttribute('data-editing-id') || null;
+    
+    if (!content) {
+      createToast('Please enter a comment before submitting.', 'error');
+      return;
+    }
+    
+    if (!eventId) {
+      createToast('Could not determine event ID', 'error');
+      return;
+    }
+    
+    const token = getAuthToken();
+    if (!token) {
+      createToast('Please log in to comment', 'error');
+      return;
+    }
+    
+    try {
+      if (commentId) {
+        // We're editing an existing comment
+        await updateComment(commentId, content);
+      } else {
+        // We're creating a new comment
+        await createComment(eventId, content, parentCommentId);
       }
       
-      const commentText = commentInput.value.trim();
-      if (commentText) {
-        showNotification('Comment submitted: ' + commentText);
-        commentInput.value = '';
-      } else {
-        showNotification('Please enter a comment before submitting.', 'error');
+      // Reset the form
+      resetCommentForm();
+      
+      // For new comments or if we can't find the specific comment element, reload all comments
+      if (!commentId) {
+        loadEventComments();
       }
-    });
-  }
-
-  if (cancelButton) {
-    cancelButton.addEventListener('click', function() {
-      commentInput.value = '';
-    });
-  }
+    } catch (error) {
+      console.error('Error with comment:', error);
+      createToast('Failed to submit comment. Please try again.', 'error');
+    }
+  });
+  
+  // Cancel button click
+  newCancelButton.addEventListener('click', () => {
+    resetCommentForm();
+  });
 }

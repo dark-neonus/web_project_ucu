@@ -3,7 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel, validator
 from enum import Enum
 from sqlmodel import Field
-from server.apps.events.models import EventCategory, Event
+from server.apps.events.models import EventCategory, Event, EventComment
 from uuid import uuid4, UUID
 from server.apps.authentication.models import User
 from sqlalchemy.orm import Session
@@ -157,6 +157,7 @@ class EventCommentResponse(BaseModel):
     date_created: str
     date_updated: Optional[str] = None
     parent_comment_id: Optional[UUID] = None
+    parent_comment_author: Optional[str] = None  # Add this field
     
     @classmethod
     def from_orm(cls, comment, db: Session):
@@ -169,6 +170,23 @@ class EventCommentResponse(BaseModel):
             author_username = user.first_name
             if user.last_name:
                 author_username += f" {user.last_name}"
+        
+        # Get parent comment author if this is a reply
+        parent_comment_author = None
+        if comment.parent_comment_id:
+            parent_comment = db.query(EventComment).filter(
+                EventComment.id == comment.parent_comment_id
+            ).first()
+            
+            if parent_comment:
+                parent_user = db.query(User).filter(
+                    User.id == parent_comment.user_id
+                ).first()
+                
+                if parent_user:
+                    parent_comment_author = parent_user.first_name
+                    if parent_user.last_name:
+                        parent_comment_author += f" {parent_user.last_name}"
 
         return cls(
             id=comment.id,
@@ -178,11 +196,11 @@ class EventCommentResponse(BaseModel):
             content=comment.content,
             date_created=comment.date_created.isoformat(),
             date_updated=comment.date_updated.isoformat() if comment.date_updated else None,
-            parent_comment_id=comment.parent_comment_id
+            parent_comment_id=comment.parent_comment_id,
+            parent_comment_author=parent_comment_author  # Add this field
         )
     
     model_config = {"from_attributes": True}
-
 class EventCommentListResponse(BaseModel):
     comments: List[EventCommentResponse]
     

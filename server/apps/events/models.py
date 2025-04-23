@@ -72,3 +72,5 @@ class EventComment(SQLModel, table=True):
     parent_comment_id: Optional[UUID] = Field(default=None, foreign_key="eventcomment.id", nullable=True)
 class CommentUpdate(BaseModel):
     content: str
+
+    model_config = {"from_attributes": True}

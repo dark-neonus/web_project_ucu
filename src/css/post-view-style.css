@@ -1,6 +1,13 @@
-/* Event View Styles */
+/**************************************
+ * EVENT VIEW STYLES
+ * A complete stylesheet for event display
+ **************************************/
 
-.main-container {
+/* 
+ * LAYOUT CONTAINERS
+ * Main structural elements 
+ */
+ .main-container {
   grid-template-columns: min-content minmax(0, 1fr);
 }
 
@@ -12,7 +19,10 @@
   padding: var(--space-md);
 }
 
-/* Post Container */
+/*
+ * POST CONTAINER
+ * The main card that holds event content
+ */
 .post-container {
   background-color: white;
   border-radius: var(--border-radius-md);
@@ -27,7 +37,10 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
-/* Post Header */
+/*
+ * POST HEADER
+ * User information and post metadata
+ */
 .post-header {
   display: flex;
   align-items: center;
@@ -35,6 +48,7 @@
   margin-bottom: var(--space-md);
 }
 
+/* User Info Area */
 .user-info {
   display: flex;
   align-items: center;
@@ -50,6 +64,7 @@
   background-color: rgba(0, 0, 0, 0.05);
 }
 
+/* Tooltip for user profile */
 .user-info::after {
   content: "View profile";
   position: absolute;
@@ -72,6 +87,7 @@
   opacity: 1;
 }
 
+/* Avatar styling */
 .avatar {
   height: 2.5rem;
   width: 2.5rem;
@@ -86,6 +102,7 @@
   object-fit: cover;
 }
 
+/* User metadata */
 .user-meta {
   display: flex;
   flex-direction: column;
@@ -104,6 +121,7 @@
   margin: 0;
 }
 
+/* Options button */
 .more-options-button {
   background: none;
   border: none;
@@ -120,7 +138,10 @@
   background-color: var(--bg-light);
 }
 
-/* Event Content */
+/*
+ * EVENT CONTENT
+ * The main event information
+ */
 .event-title {
   font-size: var(--font-xl);
   font-weight: 600;
@@ -143,7 +164,10 @@
   margin-bottom: 0;
 }
 
-/* Event Details */
+/*
+ * EVENT DETAILS
+ * Date, location and other metadata
+ */
 .event-details {
   display: flex;
   flex-wrap: wrap;
@@ -162,7 +186,10 @@
   font-size: var(--font-sm);
 }
 
-/* Post Footer */
+/*
+ * POST FOOTER
+ * Tags and statistics
+ */
 .post-footer {
   display: flex;
   justify-content: space-between;
@@ -192,7 +219,10 @@
   font-size: var(--font-sm);
 }
 
-/* Event Actions */
+/*
+ * EVENT ACTIONS
+ * Buttons for user interaction
+ */
 .event-actions {
   display: flex;
   align-items: center;
@@ -202,6 +232,7 @@
   flex-wrap: wrap;
 }
 
+/* Action buttons */
 .vote-button, .join-event-button {
   display: flex;
   align-items: center;
@@ -235,7 +266,10 @@
   transform: translateY(-1px);
 }
 
-/* Comments Section */
+/*
+ * SUGGESTIONS SECTION
+ * For event suggestions and feedback
+ */
 .suggestions-section {
   background-color: white;
   border-radius: var(--border-radius-md);
@@ -250,6 +284,7 @@
   margin-bottom: var(--space-md);
 }
 
+/* Suggestion form elements */
 .suggestion-form {
   display: flex;
   flex-direction: column;
@@ -280,6 +315,7 @@
   gap: var(--space-sm);
 }
 
+/* Suggestion action buttons */
 .suggest-button, .cancel-button {
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--border-radius-sm);
@@ -310,7 +346,10 @@
   background-color: var(--border-color-light);
 }
 
-/* Error State */
+/*
+ * ERROR STATE
+ * For displaying error messages
+ */
 .error-state {
   display: flex;
   justify-content: center;
@@ -324,7 +363,10 @@
   font-weight: 500;
 }
 
-/* Comments Section */
+/*
+ * COMMENTS SECTION
+ * User discussion area
+ */
 .comments-section {
   background-color: white;
   border-radius: var(--border-radius-md);
@@ -333,6 +375,7 @@
   margin-top: var(--space-lg);
 }
 
+/* Comment form */
 .comment-form {
   display: flex;
   flex-direction: column;
@@ -364,6 +407,7 @@
   gap: var(--space-sm);
 }
 
+/* Comment action buttons */
 .comment-button {
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--border-radius-sm);
@@ -390,28 +434,60 @@
   background-color: var(--border-color-light);
 }
 
-/* Comments Container */
+/*
+ * COMMENTS CONTAINER
+ * List of comments
+ */
 .comments-container {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
 }
 
-/* Single Comment */
+/*
+ * SINGLE COMMENT
+ * Individual comment styling
+ */
+/*
+ * COMMENTS CONTAINER
+ * List of comments
+ */
+ .comments-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/*
+ * SINGLE COMMENT
+ * Individual comment styling
+ */
 .comment {
   padding: var(--space-md);
-  border-bottom: 1px solid var(--border-color-light);
+  background-color: var(--bg-light);
+  border-radius: var(--border-radius-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+  border: 1px solid var(--border-color-light);
+  margin-bottom: var(--space-sm);
+}
+
+.comment:hover {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .comment:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
+/* Comment header with user info */
 .comment-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-sm);
+  padding-bottom: var(--space-xs);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .comment-user-info {
@@ -452,16 +528,21 @@
   margin: 0;
 }
 
+/* Comment body */
 .comment-content {
   font-size: var(--font-sm);
   line-height: 1.5;
   color: var(--text-secondary);
   margin-bottom: var(--space-sm);
+  padding: var(--space-xs) 0;
 }
 
+/* Comment interaction buttons */
 .comment-actions {
   display: flex;
   gap: var(--space-md);
+  padding-top: var(--space-xs);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .comment-action {
@@ -478,7 +559,11 @@
   color: var(--primary-color);
 }
 
-/* Loading State */
+
+/*
+ * STATE INDICATORS
+ * Loading and empty states
+ */
 .loading-comments {
   text-align: center;
   padding: var(--space-md);
@@ -486,7 +571,6 @@
   font-size: var(--font-sm);
 }
 
-/* Empty State */
 .no-comments {
   text-align: center;
   padding: var(--space-lg);
@@ -494,7 +578,11 @@
   font-size: var(--font-sm);
 }
 
-/* Responsive Adjustments */
+/*
+ * RESPONSIVE ADJUSTMENTS
+ * Media queries for different screen sizes
+ */
+/* Tablet adjustments */
 @media screen and (max-width: 768px) {
   .event-view {
     padding: var(--space-sm);
@@ -557,9 +645,10 @@
   }
 }
 
+/* Mobile adjustments */
 @media screen and (max-width: 480px) {
   .user-info::after {
-    display: none;
+    display: none; /* Hide tooltip on small screens */
   }
   
   .avatar {

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from server.core.database import get_db
 from .models import User
-from .schemas import UserCreate, UserResponse, UserLogin
+from .schemas import UserCreate, UserResponse, UserLogin, UserUpdate
 from server.core.security import hash_password, verify_password
 from datetime import timedelta
 from pathlib import Path
@@ -17,6 +17,7 @@ from fastapi.templating import Jinja2Templates
 from uuid import UUID
 from server.apps.events.schemas import EventResponse
 from server.apps.events.models import Event
+
 
 router = APIRouter()
 
@@ -114,6 +115,7 @@ def view_profile_page(user_id: str, request: Request, db: Session = Depends(get_
         first_name=user.first_name,
         last_name=user.last_name,
         email=user.email,
+        bio=user.bio
     )
 
     users_events = db.query(Event).filter(Event.author_id == user_id).order_by(Event.date_created.desc()).all()
@@ -154,6 +156,7 @@ def get_user_data(token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login
         first_name=user.first_name,
         last_name=user.last_name,
         email=user.email,
+        bio=user.bio,
     )
 
 @router.get("/settings", response_class=HTMLResponse)
@@ -167,3 +170,85 @@ def settings_page(request: Request):
         return HTMLResponse(content=html_content)
     else:
         return HTMLResponse(content="<h1>Settings page not found</h1>", status_code=404)
+
+# Update the settings endpoint
+
+@router.post("/settings", response_model=UserResponse)
+def update_user_settings(user_update: UserUpdate, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    # Validate the token and get the current user
+    current_user = get_current_user(token, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    # Validate required fields
+    if not user_update.first_name or not user_update.first_name.strip():
+        raise HTTPException(status_code=400, detail="First name is required")
+    
+    if not user_update.last_name or not user_update.last_name.strip():
+        raise HTTPException(status_code=400, detail="Last name is required")
+    
+    if not user_update.email or not user_update.email.strip():
+        raise HTTPException(status_code=400, detail="Email is required")
+    
+    # Check if the email is already registered by another user (if email is being changed)
+    if user_update.email != current_user.email:
+        db_user = db.query(User).filter(User.email == user_update.email).first()
+        if db_user:
+            raise HTTPException(status_code=400, detail="Email already registered by another user")
+
+    # Update user details
+    current_user.first_name = user_update.first_name.strip()
+    current_user.last_name = user_update.last_name.strip()
+    current_user.email = user_update.email.strip()
+    
+    # Handle bio (can be empty)
+    if user_update.bio is not None:
+        current_user.bio = user_update.bio.strip()
+
+    # Handle password change if provided
+    if user_update.current_password and user_update.new_password:
+        # Validate password length
+        if len(user_update.new_password) < 8:
+            raise HTTPException(status_code=400, detail="New password must be at least 8 characters long")
+            
+        # Verify current password
+        if not verify_password(user_update.current_password, current_user.hashed_password):
+            raise HTTPException(status_code=400, detail="Current password is incorrect")
+        
+        # Update password
+        current_user.hashed_password = hash_password(user_update.new_password)
+
+    # Save changes to database
+    db.commit()
+    db.refresh(current_user)
+
+    # Return updated user data with all fields
+    return UserResponse(
+        id=str(current_user.id),
+        first_name=current_user.first_name,
+        last_name=current_user.last_name,
+        email=current_user.email,
+        bio=current_user.bio
+    )
+
+# Add a delete account endpoint
+@router.delete("/delete_account", response_model=dict)
+def delete_account(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    """Delete the current user's account"""
+    # Validate the token and get the current user
+    current_user = get_current_user(token, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    try:
+        # Delete the user
+        user_id = current_user.id  # Save ID for logging
+        db.delete(current_user)
+        db.commit()
+        print(f"User account deleted: {user_id}")
+        
+        return {"message": "Account successfully deleted"}
+    except Exception as e:
+        db.rollback()
+        print(f"Error deleting account: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete account: {str(e)}")

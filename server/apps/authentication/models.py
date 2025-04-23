@@ -9,8 +9,9 @@ class Role(str, Enum):
 
 class User(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    first_name: str = Field(index=True, unique=False, max_length=50)
-    last_name: str = Field(index=True, unique=False, max_length=50)
+    first_name: str = Field(index=True, unique=False, max_length=50, min_length=2)
+    last_name: str = Field(index=True, unique=False, max_length=50, min_length=2)
     email: str = Field(index=True, unique=True)
     hashed_password: str
+    bio: str = Field(default="", max_length=500)
     role: Role = Field(default=Role.USER)

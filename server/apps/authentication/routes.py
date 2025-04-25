@@ -46,6 +46,7 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
         first_name=new_user.first_name,
         last_name=new_user.last_name,
         email=new_user.email,
+        bio = ""
     )
 
 @router.get("/register", response_class=HTMLResponse)

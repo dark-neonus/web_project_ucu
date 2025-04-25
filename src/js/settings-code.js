@@ -4,51 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add CSS for notifications
     const style = document.createElement('style');
-    style.textContent = `
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 6px;
-            color: white;
-            font-weight: 500;
-            z-index: 9999;
-            opacity: 0;
-            transform: translateY(-20px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            max-width: 300px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-        }
-        
-        .notification.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        .notification.success {
-            background-color: #4CAF50;
-        }
-        
-        .notification.error {
-            background-color: #F44336;
-        }
-        
-        .notification.info {
-            background-color: #2196F3;
-        }
-
-        .form-error {
-            color: #F44336;
-            font-size: 0.8rem;
-            margin-top: 4px;
-        }
-        
-        .form-input-error {
-            border: 1px solid #F44336 !important;
-        }
-    `;
-    document.head.appendChild(style);
     
     // Function to load user data with retry logic
     async function loadUserData(retry = 3) {
@@ -574,28 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
       }, 3000);
     }
-    
-    // Add spinner style
-    const spinnerStyle = document.createElement('style');
-    spinnerStyle.textContent = `
-      .spinner {
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        border-top-color: #fff;
-        animation: spin 1s ease-in-out infinite;
-        margin-right: 8px;
-        vertical-align: middle;
-      }
-      
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(spinnerStyle);
-    
+        
     // Load user data on page load with a slight delay to ensure DOM is ready
     console.log("Initiating user data load");
     setTimeout(() => {

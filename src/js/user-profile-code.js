@@ -1,4 +1,5 @@
-import {formatEventDates} from './post-format-code.js';
+import { formatEventDates } from './post-format-code.js';
+import { getUserId } from './auth.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     // Sidebar toggle functionality
@@ -66,6 +67,54 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
+    // Check if the settings link should be visible
+    checkSettingsLinkVisibility();
+    
     formatEventDates();
+});
 
-  });
+// Function to check if the settings link should be visible
+async function checkSettingsLinkVisibility() {
+    try {
+        // Get the profile user ID from the URL path
+        // Example: /user/profile/123 -> extract 123
+        const pathParts = window.location.pathname.split('/');
+        const profileUserId = pathParts[pathParts.length - 1];
+        
+        // Alternative: get user ID from a script tag if available
+        // Look for an embedded script tag with current_user_id
+        const scriptTags = document.querySelectorAll('script[type="module"]');
+        let isOwnProfile = false;
+        
+        // Check if there's a conditional script tag for profile editing
+        // This indicates it's the user's own profile
+        for (const script of scriptTags) {
+            if (script.src.includes('profile-edit.js')) {
+                isOwnProfile = true;
+                break;
+            }
+        }
+        
+        // If we don't have confirmation from script tags, check with the auth service
+        if (!isOwnProfile) {
+            try {
+                const currentUserId = await getUserId();
+                // Convert both IDs to strings for comparison
+                isOwnProfile = String(currentUserId) === String(profileUserId);
+            } catch (error) {
+                console.error('Error getting current user ID:', error);
+                isOwnProfile = false;
+            }
+        }
+        
+        // Hide settings link if not viewing own profile
+        if (!isOwnProfile) {
+            const settingsLink = document.querySelector('.sidebar-nav-item[href="/auth/settings"]');
+            if (settingsLink) {
+                settingsLink.style.display = 'none';
+            }
+        }
+    } catch (error) {
+        console.error('Error checking profile ownership:', error);
+    }
+}

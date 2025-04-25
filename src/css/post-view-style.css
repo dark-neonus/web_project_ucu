@@ -530,11 +530,11 @@
 
 /* Comment body */
 .comment-content {
-  font-size: var(--font-sm);
+  font-size: var(--font-md);
   line-height: 1.5;
-  color: var(--text-secondary);
   margin-bottom: var(--space-sm);
   padding: var(--space-xs) 0;
+  font-weight: var(--font-md);
 }
 
 /* Comment interaction buttons */

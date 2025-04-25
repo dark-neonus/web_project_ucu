@@ -18,7 +18,7 @@ class UserResponse(BaseModel):
     first_name: str
     last_name: str
     email: str
-    bio: str
+    bio: Optional[str] = None
 
     class Config:
         from_attributes = True

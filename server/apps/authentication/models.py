@@ -13,5 +13,5 @@ class User(SQLModel, table=True):
     last_name: str = Field(index=True, unique=False, max_length=50, min_length=2)
     email: str = Field(index=True, unique=True)
     hashed_password: str
-    bio: str = Field(default="", max_length=500)
+    bio: Optional[str] = Field(default="", max_length=500)
     role: Role = Field(default=Role.USER)

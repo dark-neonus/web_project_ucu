@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     
     // Add toast to body
-    document.body.appendChild(toast);
+    document.body.insertBefore(toast, document.body.firstChild);
     
     // Add event listener to close button
     toast.querySelector('.toast-close').addEventListener('click', () => {
@@ -62,88 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     return toast;
   };
-  
-  // Add toast styles to page
-  const style = document.createElement('style');
-  style.textContent = `
-    .toast-notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 16px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: white;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      z-index: 9999;
-      max-width: 350px;
-      transform: translateX(110%);
-      transition: transform 0.3s ease;
-    }
-    
-    .toast-visible {
-      transform: translateX(0);
-    }
-    
-    .toast-hidden {
-      transform: translateX(110%);
-    }
-    
-    .toast-success {
-      background-color: #10b981;
-    }
-    
-    .toast-error {
-      background-color: #ef4444;
-    }
-    
-    .toast-info {
-      background-color: #3b82f6;
-    }
-    
-    .toast-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .toast-message {
-      flex: 1;
-      font-size: 14px;
-    }
-    
-    .toast-close {
-      background: none;
-      border: none;
-      padding: 0;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      opacity: 0.7;
-      transition: opacity 0.2s;
-    }
-    
-    .toast-close:hover {
-      opacity: 1;
-    }
-    
-    .form-error {
-      color: #fecaca;
-      font-size: 0.75rem;
-      margin-top: 4px;
-      display: block;
-      text-align: left;
-    }
-    
-    .form-input-error {
-      border-color: #ef4444 !important;
-    }
-  `;
-  document.head.appendChild(style);
   
   // Toggle password visibility
   const toggleButtons = document.querySelectorAll('.toggle-password');
@@ -207,14 +125,15 @@ document.addEventListener('DOMContentLoaded', function() {
       validatePassword(this.value);
     });
     
-    // Password validation function
+    // Updated password validation function to match settings page
     function validatePassword(password) {
-      // Password requirements
+      // Password requirements - updated to match settings page requirements
       const minLength = 8;
       const maxLength = 64;
       const hasUppercase = /[A-Z]/.test(password);
       const hasLowercase = /[a-z]/.test(password);
       const hasNumbers = /[0-9]/.test(password);
+      const hasSpecialChars = /[^A-Za-z0-9]/.test(password); // Optional check for special characters
       
       // Calculate strength
       let strength = 0;
@@ -232,20 +151,28 @@ document.addEventListener('DOMContentLoaded', function() {
       // Check for diverse character types
       if (!hasUppercase) {
         feedback.push('Add uppercase letters');
+        strength -= 0.5;
       } else {
         strength += 1;
       }
       
       if (!hasLowercase) {
         feedback.push('Add lowercase letters');
+        strength -= 0.5;
       } else {
         strength += 1;
       }
       
       if (!hasNumbers) {
         feedback.push('Add numbers');
+        strength -= 0.5;
       } else {
         strength += 1;
+      }
+      
+      // Optional check for special characters (not required but increases strength)
+      if (hasSpecialChars) {
+        strength += 0.5;
       }
       
       // Check for common patterns
@@ -279,14 +206,15 @@ document.addEventListener('DOMContentLoaded', function() {
         <div style="margin-bottom: 5px;">
           <span style="color: ${strengthColor}; font-weight: 600;">${strengthText}</span>
           <div style="height: 5px; background-color: #e0e0e0; border-radius: 2px; margin-top: 4px;">
-            <div style="height: 100%; width: ${strength * 25}%; background-color: ${strengthColor}; border-radius: 2px; transition: width 0.3s;"></div>
+            <div style="height: 100%; width: ${(strength / 4) * 100}%; background-color: ${strengthColor}; border-radius: 2px; transition: width 0.3s;"></div>
           </div>
         </div>
-        ${feedback.length >  0 ? `<ul style="margin: 0; padding-left: 20px; color: #666;">${feedback.map(item => `<li>${item}</li>`).join('')}</ul>` : ''}
+        ${feedback.length > 0 ? `<ul style="margin: 0; padding-left: 20px; color: #666;">${feedback.map(item => `<li>${item}</li>`).join('')}</ul>` : ''}
       `;
       
       return {
-        isValid: password.length >= minLength && password.length <= maxLength && hasUppercase && hasLowercase && hasNumbers,
+        isValid: password.length >= minLength && password.length <= maxLength && 
+                 hasUppercase && hasLowercase && hasNumbers,
         feedback: feedback
       };
     }
@@ -315,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Get confirm password value
       const confirmPassword = document.getElementById('confirm_password').value;
       
-      // First name validation
+      // First name validation - match settings page (2-50 chars)
       if (!formData.first_name) {
         const firstNameInput = document.getElementById('first_name');
         firstNameInput.classList.add('form-input-error');
@@ -324,15 +252,31 @@ document.addEventListener('DOMContentLoaded', function() {
         errorEl.textContent = 'First name is required';
         firstNameInput.parentElement.appendChild(errorEl);
         isValid = false;
+      } else if (formData.first_name.length < 2 || formData.first_name.length > 50) {
+        const firstNameInput = document.getElementById('first_name');
+        firstNameInput.classList.add('form-input-error');
+        const errorEl = document.createElement('span');
+        errorEl.className = 'form-error';
+        errorEl.textContent = 'First name must be between 2 and 50 characters';
+        firstNameInput.parentElement.appendChild(errorEl);
+        isValid = false;
       }
       
-      // Last name validation
+      // Last name validation - match settings page (2-50 chars)
       if (!formData.last_name) {
         const lastNameInput = document.getElementById('last_name');
         lastNameInput.classList.add('form-input-error');
         const errorEl = document.createElement('span');
         errorEl.className = 'form-error';
         errorEl.textContent = 'Last name is required';
+        lastNameInput.parentElement.appendChild(errorEl);
+        isValid = false;
+      } else if (formData.last_name.length < 2 || formData.last_name.length > 50) {
+        const lastNameInput = document.getElementById('last_name');
+        lastNameInput.classList.add('form-input-error');
+        const errorEl = document.createElement('span');
+        errorEl.className = 'form-error';
+        errorEl.textContent = 'Last name must be between 2 and 50 characters';
         lastNameInput.parentElement.appendChild(errorEl);
         isValid = false;
       }
@@ -357,8 +301,9 @@ document.addEventListener('DOMContentLoaded', function() {
         isValid = false;
       }
       
-      // Password validation
+      // Password validation - updated to match settings page
       if (passwordInput) {
+        // Create a validate function that matches settings page requirements
         const validatePassword = function(password) {
           // Password requirements
           const minLength = 8;
@@ -403,7 +348,12 @@ document.addEventListener('DOMContentLoaded', function() {
           const passwordInput = document.getElementById('password');
           passwordInput.classList.add('form-input-error');
           
-          // Create better formatted error message for password requirements
+          // Create error message for password requirements
+          const errorEl = document.createElement('span');
+          errorEl.className = 'form-error';
+          errorEl.textContent = 'Password must be at least 8 characters and include uppercase, lowercase, and numbers';
+          passwordInput.parentElement.appendChild(errorEl);
+          
           isValid = false;
           
           // Show toast with password requirements

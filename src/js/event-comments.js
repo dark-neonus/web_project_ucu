@@ -17,7 +17,12 @@ function updateCommentCount(count) {
 }
 
 // Enhanced toast notification system for comment deletions
+// Fix for the issue where notification doesn't vanish automatically
+// Enhanced toast notification system for comment deletions
 function createToast(message, type = 'error', options = {}) {
+  // Set default autoDismiss value if not provided
+  options.autoDismiss = options.autoDismiss || 3000; // Default to 3 seconds
+  
   // Remove any existing toasts of the same type
   const existingToasts = document.querySelectorAll(`.toast-notification.toast-${type}`);
   existingToasts.forEach(toast => toast.remove());
@@ -38,11 +43,8 @@ function createToast(message, type = 'error', options = {}) {
     icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
   }
   
-  // Add progress bar if auto-dismiss is enabled
-  let progressBar = '';
-  if (options.autoDismiss) {
-    progressBar = '<div class="toast-progress-bar"><div class="toast-progress"></div></div>';
-  }
+  // Add progress bar for all toasts - this ensures auto-dismiss works
+  const progressBar = '<div class="toast-progress-bar"><div class="toast-progress"></div></div>';
   
   // Add action buttons if provided
   let actionButtons = '';
@@ -70,11 +72,15 @@ function createToast(message, type = 'error', options = {}) {
     ${progressBar}
   `;
   
+  // Store auto-dismiss timer for cleanup
+  let autoDismissTimer = null;
+  
   // Add toast to body
   document.body.appendChild(toast);
   
   // Add event listener to close button
   toast.querySelector('.toast-close').addEventListener('click', () => {
+    clearTimeout(autoDismissTimer); // Clear timeout if manually closed
     dismissToast(toast);
   });
   
@@ -82,6 +88,7 @@ function createToast(message, type = 'error', options = {}) {
   if (options.actions && options.actions.length) {
     toast.querySelectorAll('.toast-action-button').forEach(button => {
       button.addEventListener('click', () => {
+        clearTimeout(autoDismissTimer); // Clear timeout if action taken
         const actionId = button.getAttribute('data-action');
         const action = options.actions.find(a => a.id === actionId);
         if (action && action.callback) {
@@ -92,35 +99,50 @@ function createToast(message, type = 'error', options = {}) {
     });
   }
   
-  // Animate in
+  // Animate in with small delay to ensure DOM updates
   setTimeout(() => {
     toast.classList.add('toast-visible');
     
-    // Start progress animation if auto-dismiss is enabled
-    if (options.autoDismiss) {
-      const progressElement = toast.querySelector('.toast-progress');
-      if (progressElement) {
+    // Start progress animation for all toasts
+    const progressElement = toast.querySelector('.toast-progress');
+    if (progressElement) {
+      // Use requestAnimationFrame to ensure the initial state is rendered before transition
+      requestAnimationFrame(() => {
+        // Set initial width to 100%
+        progressElement.style.width = '100%';
+        
+        // Force a reflow to ensure the initial state is applied
+        progressElement.offsetWidth;
+        
+        // Now set the transition and final width
         progressElement.style.transition = `width ${options.autoDismiss}ms linear`;
         progressElement.style.width = '0%';
-      }
+      });
+    }
+    
+    // Set autoDismiss timeout for all toasts
+    if (options.autoDismiss !== false) {
+      autoDismissTimer = setTimeout(() => {
+        dismissToast(toast);
+      }, options.autoDismiss);
     }
   }, 10);
-  
-  // Auto-dismiss after specified time if enabled
-  if (options.autoDismiss) {
-    setTimeout(() => {
-      dismissToast(toast);
-    }, options.autoDismiss);
-  }
   
   return toast;
 }
 
+// Improved dismissToast function with proper cleanup
 function dismissToast(toast) {
+  if (!toast || toast.classList.contains('toast-hidden')) return;
+  
   toast.classList.remove('toast-visible');
   toast.classList.add('toast-hidden');
+  
+  // Make sure the element is removed after animation completes
   setTimeout(() => {
-    toast.remove();
+    if (toast && toast.parentNode) {
+      toast.parentNode.removeChild(toast);
+    }
   }, 300);
 }
 
@@ -173,7 +195,7 @@ async function performCommentDeletion(commentId) {
     dismissToast(loadingToast);
     
     if (response.ok) {
-      createToast('Comment deleted successfully', 'success', { autoDismiss: 5000 });
+      createToast('Comment deleted successfully', 'success', { autoDismiss: 500 });
       
       // Get the current count and decrement it
       const commentCountElement = document.querySelector('.post-stats .stat:first-child span:last-child');
@@ -221,7 +243,7 @@ async function performCommentDeletion(commentId) {
     }
   } catch (error) {
     console.error('Error deleting comment:', error);
-    createToast(error.message || 'Failed to delete comment', 'error', { autoDismiss: 5000 });
+    createToast(error.message || 'Failed to delete comment', 'error', { autoDismiss: 500 });
   }
 }
 
@@ -292,17 +314,24 @@ function createCommentElement(comment, currentUserId) {
   
   // Check if the current user is the author
   const isAuthor = String(comment.user_id).trim() === String(currentUserId).trim();
-  console.log(isAuthor);
 
+  // Sanitize comment content for security
+  const safeContent = sanitizeCommentContent(comment.content);
+  
   let replyToHtml = '';
   if (comment.parent_comment_author) {
+    // Sanitize parent author name
+    const safeParentAuthor = sanitizeCommentContent(comment.parent_comment_author);
     replyToHtml = `
       <div class="reply-reference">
         <span class="reply-to-text">Reply to</span>
-        <span class="reply-to-author">${comment.parent_comment_author}</span>
+        <span class="reply-to-author">${safeParentAuthor}</span>
       </div>
     `;
   }
+
+  // Sanitize username
+  const safeUsername = sanitizeCommentContent(comment.author_username);
 
   // Create comment HTML structure
   commentDiv.innerHTML = `
@@ -312,7 +341,7 @@ function createCommentElement(comment, currentUserId) {
           <img src="https://via.placeholder.com/32" alt="User avatar">
         </div>
         <div class="comment-user-meta">
-          <p class="comment-username">${comment.author_username}</p>
+          <p class="comment-username">${safeUsername}</p>
           ${replyToHtml}
           <p class="comment-time" datetime="${isoDate}">${formattedDate}</p>
         </div>
@@ -329,7 +358,7 @@ function createCommentElement(comment, currentUserId) {
       </div>
     </div>
     <div class="comment-content">
-      <p>${comment.content}</p>
+      <p>${safeContent}</p>
     </div>
     <div class="comment-footer">
       <button class="reply-button" data-comment-id="${comment.id}">
@@ -375,6 +404,7 @@ function setupCommentFormListeners() {
   const commentInput = document.getElementById('comment-input');
   const submitButton = document.getElementById('comment-submit-button');
   const cancelButton = document.getElementById('comment-cancel-button');
+  const charCounter = document.getElementById('comment-char-counter') || createCharCounter();
   
   if (!commentInput || !submitButton || !cancelButton) return;
   
@@ -390,15 +420,48 @@ function setupCommentFormListeners() {
     cancelButton.parentNode.replaceChild(newCancelButton, cancelButton);
   }
   
-  // Submit button click
+  // Add input event listener for character counting and live validation
+  commentInput.addEventListener('input', () => {
+    const content = commentInput.value;
+    const charCount = content.length;
+    
+    // Update character counter
+    updateCharCounter(charCounter, charCount);
+    
+    // Live validation for immediate feedback
+    if (charCount > 0) {
+      const validation = validateCommentContent(content);
+      if (!validation.valid) {
+        charCounter.classList.add('error');
+        charCounter.setAttribute('title', validation.message);
+      } else {
+        charCounter.classList.remove('error');
+        charCounter.removeAttribute('title');
+      }
+    } else {
+      charCounter.classList.remove('error');
+      charCounter.removeAttribute('title');
+    }
+  });
+  
+  // Submit button click with validation
   newSubmitButton.addEventListener('click', async () => {
-    const content = commentInput.value.trim();
+    const content = commentInput.value;
     const eventId = getEventIdFromUrl();
     const parentCommentId = commentInput.getAttribute('data-parent-id') || null;
     const commentId = commentInput.getAttribute('data-editing-id') || null;
     
-    if (!content) {
-      createToast('Please enter a comment before submitting.', 'error');
+    // Check rate limiting
+    const rateLimitCheck = commentRateLimit.check();
+    if (!rateLimitCheck.allowed) {
+      createToast(rateLimitCheck.message, 'warning', { autoDismiss: rateLimitCheck.waitTime });
+      return;
+    }
+    
+    // Validate content
+    const validation = validateCommentContent(content);
+    if (!validation.valid) {
+      createToast(validation.message, 'error');
       return;
     }
     
@@ -416,19 +479,19 @@ function setupCommentFormListeners() {
     try {
       if (commentId) {
         // We're editing an existing comment
-        await updateComment(commentId, content);
+        await updateComment(commentId, validation.content);
         
         // Update the comment in the DOM if possible
         const commentContentElement = document.querySelector(`.comment[data-comment-id="${commentId}"] .comment-content p`);
         if (commentContentElement) {
-          commentContentElement.textContent = content;
+          commentContentElement.innerHTML = sanitizeCommentContent(validation.content);
         } else {
           // If we can't find the element, reload all comments
           loadEventComments();
         }
       } else {
         // We're creating a new comment
-        await createComment(eventId, content, parentCommentId);
+        await createComment(eventId, validation.content, parentCommentId);
         
         // Reload comments to show the new comment
         loadEventComments();
@@ -448,67 +511,18 @@ function setupCommentFormListeners() {
   });
 }
 
-// Function to create a new comment
-async function createComment(eventId, content, parentCommentId = null) {
-  const token = getAuthToken();
-  if (!token) {
-    createToast('Please log in to comment', 'error');
-    return;
-  }
-  
-  const requestBody = {
-    content: content
-  };
-  
-  if (parentCommentId) {
-    requestBody.parent_comment_id = parentCommentId;
-  }
-  
-  try {
-    const response = await fetch(`/events/${eventId}/comments`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Error response:', errorData);
-      throw errorData;
-    }
-    
-    const data = await response.json();
-    createToast('Comment posted successfully', 'success');
-    
-    // Get the current count and increment it
-    const commentCountElement = document.querySelector('.post-stats .stat:first-child span:last-child');
-    if (commentCountElement) {
-      const currentCount = parseInt(commentCountElement.textContent) || 0;
-      updateCommentCount(currentCount + 1);
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Error creating comment:', error);
-    let errorMessage = 'Failed to post comment';
-    if (error.detail) {
-      errorMessage = error.detail;
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-    createToast(errorMessage, 'error');
-    throw error;
-  }
-}
-
 // Function to update an existing comment
 async function updateComment(commentId, content) {
   const token = getAuthToken();
   if (!token) {
     createToast('Please log in to edit comments', 'error');
+    return;
+  }
+  
+  // Validate content before submission
+  const validation = validateCommentContent(content);
+  if (!validation.valid) {
+    createToast(validation.message, 'error');
     return;
   }
   
@@ -520,7 +534,7 @@ async function updateComment(commentId, content) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        content: content
+        content: validation.content
       })
     });
     
@@ -800,10 +814,238 @@ document.addEventListener('DOMContentLoaded', function() {
   setupDateRefreshing();
 });
 
+function addCharCounterStyles() {
+  const styleEl = document.createElement('style');
+  styleEl.textContent = `
+    .comment-char-counter {
+      font-size: 12px;
+      color: #6c757d;
+      text-align: right;
+      margin-top: 4px;
+      margin-bottom: 10px;
+      transition: color 0.3s ease;
+    }
+    
+    .comment-char-counter.warning {
+      color: #ffc107;
+    }
+    
+    .comment-char-counter.error {
+      color: #dc3545;
+    }
+  `;
+  document.head.appendChild(styleEl);
+}
+
+// Initialize everything on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Add character counter styles
+  addCharCounterStyles();
+  
+  // Load comments when the page loads
+  loadEventComments();
+  
+  // Setup date refreshing
+  setupDateRefreshing();
+});
+
+function createCharCounter() {
+  const commentInput = document.getElementById('comment-input');
+  if (!commentInput) return null;
+  
+  const charCounter = document.createElement('div');
+  charCounter.id = 'comment-char-counter';
+  charCounter.className = 'comment-char-counter';
+  charCounter.textContent = '0/500';
+  
+  // Insert after the comment input
+  if (commentInput.parentNode) {
+    commentInput.parentNode.insertBefore(charCounter, commentInput.nextSibling);
+  }
+  
+  return charCounter;
+}
+
+// Update character counter with visual feedback
+function updateCharCounter(charCounter, count) {
+  if (!charCounter) return;
+  
+  charCounter.textContent = `${count}/500`;
+  
+  // Visual feedback based on length
+  charCounter.className = 'comment-char-counter';
+  
+  if (count > 400) {
+    charCounter.classList.add('warning');
+  } else if (count > 500) {
+    charCounter.classList.add('error');
+  }
+}
+
+// Function to create a new comment with validation
+async function createComment(eventId, content, parentCommentId = null) {
+  const token = getAuthToken();
+  if (!token) {
+    createToast('Please log in to comment', 'error');
+    return;
+  }
+  
+  // Validate content before submission
+  const validation = validateCommentContent(content);
+  if (!validation.valid) {
+    createToast(validation.message, 'error');
+    return;
+  }
+  
+  const requestBody = {
+    content: validation.content
+  };
+  
+  if (parentCommentId) {
+    requestBody.parent_comment_id = parentCommentId;
+  }
+  
+  try {
+    const response = await fetch(`/events/${eventId}/comments`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error response:', errorData);
+      throw errorData;
+    }
+    
+    const data = await response.json();
+    createToast('Comment posted successfully', 'success');
+    
+    // Get the current count and increment it
+    const commentCountElement = document.querySelector('.post-stats .stat:first-child span:last-child');
+    if (commentCountElement) {
+      const currentCount = parseInt(commentCountElement.textContent) || 0;
+      updateCommentCount(currentCount + 1);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error creating comment:', error);
+    let errorMessage = 'Failed to post comment';
+    if (error.detail) {
+      errorMessage = error.detail;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    createToast(errorMessage, 'error');
+    throw error;
+  }
+}
+
+// New validation functions for comments
+function validateCommentContent(content) {
+  // Trim the content to remove leading/trailing whitespace
+  const trimmedContent = content.trim();
+  
+  // Check if comment is empty
+  if (!trimmedContent) {
+    return {
+      valid: false,
+      message: 'Comment cannot be empty'
+    };
+  }
+  
+  // Check minimum length
+  if (trimmedContent.length < 2) {
+    return {
+      valid: false,
+      message: 'Comment is too short (minimum 2 characters)'
+    };
+  }
+  
+  // Check maximum length (prevent extremely long comments)
+  if (trimmedContent.length > 500) {
+    return {
+      valid: false,
+      message: 'Comment is too long (maximum 500 characters)'
+    };
+  }
+  
+  // Check for excessive capitalization (yelling)
+  const upperCaseChars = trimmedContent.replace(/[^A-Z]/g, '').length;
+  const totalChars = trimmedContent.replace(/[^A-Za-z]/g, '').length;
+  
+  if (totalChars > 20 && upperCaseChars / totalChars > 0.7) {
+    return {
+      valid: false,
+      message: 'Please avoid using excessive capitalization'
+    };
+  }
+  
+  // Check for excessive repeating characters
+  if (/(.)\1{10,}/.test(trimmedContent)) {
+    return {
+      valid: false,
+      message: 'Comment contains excessive repeating characters'
+    };
+  }
+  
+  // Check for spam patterns (e.g., repeated URLs)
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const urls = trimmedContent.match(urlRegex) || [];
+  
+  if (urls.length > 5) {
+    return {
+      valid: false,
+      message: 'Too many URLs in comment (maximum 5 allowed)'
+    };
+  }
+  
+  // All checks passed
+  return {
+    valid: true,
+    content: trimmedContent // Return the trimmed content
+  };
+}
+
+// Function to sanitize content before displaying it
+function sanitizeCommentContent(content) {
+  // Basic HTML sanitization (should be used in conjunction with server-side sanitization)
+  return content
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// Rate limiting for comment submissions
+const commentRateLimit = {
+  lastSubmit: 0,
+  minInterval: 3000, // 3 seconds between submissions
+  check: function() {
+    const now = Date.now();
+    if (now - this.lastSubmit < this.minInterval) {
+      return {
+        allowed: false,
+        message: `Please wait ${Math.ceil((this.minInterval - (now - this.lastSubmit)) / 1000)} seconds before submitting another comment`,
+        waitTime: this.minInterval - (now - this.lastSubmit)
+      };
+    }
+    this.lastSubmit = now;
+    return { allowed: true };
+  }
+};
+
 export {
   loadEventComments,
   createComment,
   updateComment,
   deleteComment,
-  updateCommentCount
+  updateCommentCount,
+  validateCommentContent,
+  sanitizeCommentContent
 };

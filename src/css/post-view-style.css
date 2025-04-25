@@ -49,7 +49,7 @@
 }
 
 /* User Info Area */
-.user-info {
+#user-info {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
@@ -60,12 +60,12 @@
   position: relative;
 }
 
-.user-info:hover {
+#user-info:hover {
   background-color: rgba(0, 0, 0, 0.05);
 }
 
 /* Tooltip for user profile */
-.user-info::after {
+#user-info::after {
   content: "View profile";
   position: absolute;
   bottom: -20px;
@@ -83,7 +83,7 @@
   z-index: 1;
 }
 
-.user-info:hover::after {
+#user-info:hover::after {
   opacity: 1;
 }
 
@@ -109,7 +109,7 @@
   gap: 0.25rem;
 }
 
-.username {
+#username {
   font-weight: 500;
   margin: 0;
   color: var(--link-color);

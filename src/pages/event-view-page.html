@@ -72,12 +72,12 @@
       <div class="post-container" data-content-type="events">
         {% if event %}
           <div onclick="window.location.href = '/auth/profile/{{ event.author_id}}'" class="post-header">
-            <div class="user-info">
+            <div class="user-info" , id = "user-info">
               <div class="avatar">
                 <img src="https://via.placeholder.com/40" alt="User avatar">
               </div>
               <div class="user-meta">
-                <p class="username">{{ event.author_username }}</p>
+                <p class="username" , id = "username">{{ event.author_username }}</p>
                 <p class="time">{{ event.date_created }}</p>
               </div>
             </div>

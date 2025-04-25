@@ -52,150 +52,175 @@ document.addEventListener('DOMContentLoaded', async () => {
     const formButton = document.querySelector('.button-primary');
     const formElement = document.querySelector('.question-form');
 
-    formButton.addEventListener('click', async (e) => {
-      e.preventDefault();
-    
-      // Clear previous errors
-      clearValidationErrors();
-    
-      // Get form values from the DOM
-      const title = document.querySelector('.form-input').value.trim();
-      const description = document.querySelector('.form-textarea').value.trim();
-      const dateTimeInput = document.getElementById('event-date').value;
-      const location = document.getElementById('event-location').value.trim();
-      const category = categorySelect.value;
-      const imageCaption = document.getElementById('image-caption') ? document.getElementById('image-caption').value.trim() : '';
-      const imageInput = document.getElementById('image-upload');
-    
-      // Validate all fields
-      let isValid = true;
-    
-      // Title validation
-      if (!title) {
-        displayError(document.querySelector('.form-input'), 'Event title is required');
-        isValid = false;
-      } else if (title.length < 5) {
-        displayError(document.querySelector('.form-input'), 'Title must be at least 5 characters long');
-        isValid = false;
-      } else if (title.length > 100) {
-        displayError(document.querySelector('.form-input'), 'Title must be less than 100 characters');
-        isValid = false;
-      }
-    
-      // Description validation
-      if (!description) {
-        displayError(document.querySelector('.form-textarea'), 'Event description is required');
-        isValid = false;
-      } else if (description.length < 20) {
-        displayError(document.querySelector('.form-textarea'), 'Description must be at least 20 characters long');
-        isValid = false;
-      }
-    
-      // Date/time validation
-      if (!dateTimeInput) {
-        displayError(document.getElementById('event-date'), 'Event date and time are required');
-        isValid = false;
-      } else {
-        const selectedDateTime = new Date(dateTimeInput);
-        const currentDateTime = new Date();
-        
-        if (isNaN(selectedDateTime.getTime())) {
-          displayError(document.getElementById('event-date'), 'Please enter a valid date and time');
-          isValid = false;
-        } else if (selectedDateTime < currentDateTime) {
-          displayError(document.getElementById('event-date'), 'Event cannot be scheduled in the past');
-          isValid = false;
-        }
-      }
-    
-      // Location validation
-      if (!location) {
-        displayError(document.getElementById('event-location'), 'Event location is required');
-        isValid = false;
-      } else if (location.length < 3) {
-        displayError(document.getElementById('event-location'), 'Location must be at least 3 characters long');
-        isValid = false;
-      }
-    
-      // Category validation 
-      if (!category) {
-        displayError(categorySelect, 'Please select an event category');
-        isValid = false;
-      }
-    
-      if (!isValid) {
-        // Scroll to the first error
-        const firstError = document.querySelector('.form-input-error');
-        if (firstError) {
-          firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          firstError.focus();
-        }
-        return;
-      }
-    
-      const dateScheduled = dateTimeInput ? new Date(dateTimeInput).toISOString() : '';
+    // Set up form submission handler
+formButton.addEventListener('click', async (e) => {
+  e.preventDefault();
 
+  // Clear previous errors
+  clearValidationErrors();
 
-      try {
-        // Show loading state on button
-        const submitButton = formButton;
-        const originalButtonText = submitButton.innerHTML;
-        submitButton.disabled = true;
-        submitButton.innerHTML = `
-          <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10" stroke-opacity="0.25" stroke-dasharray="32" stroke-dashoffset="0"></circle>
-            <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="16"></circle>
-          </svg>
-          Processing...
-        `;
+  // Get form values from the DOM
+  const title = document.querySelector('.form-input').value.trim();
+  const description = document.querySelector('.form-textarea').value.trim();
+  const dateTimeInput = document.getElementById('event-date').value;
+  const location = document.getElementById('event-location').value.trim();
+  const category = categorySelect.value;
+  const imageCaption = document.getElementById('image-caption') ? document.getElementById('image-caption').value.trim() : '';
+  const imageInput = document.getElementById('image-upload');
 
-        // Create FormData for multipart/form-data submission
-        const formData = new FormData();
-        formData.append('title', title);
-        formData.append('description', description);
-        formData.append('date_scheduled', dateScheduled);
-        formData.append('location', location);
-        formData.append('category', category);
-        formData.append('author_id', userId);
-        
-        // Add image file if selected
-        if (imageInput && imageInput.files && imageInput.files.length > 0) {
-          formData.append('image_file', imageInput.files[0]);
-          
-          // Add image caption if available
-          if (imageCaption) {
-            formData.append('image_caption', imageCaption);
-          }
-        }
+  // Validate all fields
+  let isValid = true;
 
-        // Send data to the server
-        const createResponse = await fetch('/events/create_event', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            // Don't set Content-Type header - the browser will set it with the correct boundary for FormData
-          },
-          body: formData,
-        });
+  // Title validation - match the 150 character limit from your SQLModel
+  if (!title) {
+    displayError(document.querySelector('.form-input'), 'Event title is required');
+    isValid = false;
+  } else if (title.length < 5) {
+    displayError(document.querySelector('.form-input'), 'Title must be at least 5 characters long');
+    isValid = false;
+  } else if (title.length > 150) {
+    displayError(document.querySelector('.form-input'), 'Title cannot exceed 150 characters');
+    isValid = false;
+  }
 
-        // Reset button state
-        submitButton.disabled = false;
-        submitButton.innerHTML = originalButtonText;
+  // Description validation - match the 1000 character limit from your SQLModel
+  if (!description) {
+    displayError(document.querySelector('.form-textarea'), 'Event description is required');
+    isValid = false;
+  } else if (description.length < 20) {
+    displayError(document.querySelector('.form-textarea'), 'Description must be at least 20 characters long');
+    isValid = false;
+  } else if (description.length > 1000) {
+    displayError(document.querySelector('.form-textarea'), 'Description cannot exceed 1000 characters');
+    isValid = false;
+  }
 
-        if (!createResponse.ok) {
-          const errorData = await createResponse.json();
-          throw new Error(errorData.detail || 'Failed to create event');
-        }
+  // Date/time validation - more thorough
+  if (!dateTimeInput) {
+    displayError(document.getElementById('event-date'), 'Event date and time are required');
+    isValid = false;
+  } else {
+    const selectedDateTime = new Date(dateTimeInput);
+    const currentDateTime = new Date();
+    
+    if (isNaN(selectedDateTime.getTime())) {
+      displayError(document.getElementById('event-date'), 'Please enter a valid date and time');
+      isValid = false;
+    } else if (selectedDateTime < currentDateTime) {
+      displayError(document.getElementById('event-date'), 'Event cannot be scheduled in the past');
+      isValid = false;
+    } 
+    // Optional: Check if date is not too far in the future (e.g., 2 years)
+    else if (selectedDateTime > new Date(currentDateTime.getFullYear() + 2, currentDateTime.getMonth(), currentDateTime.getDate())) {
+      displayError(document.getElementById('event-date'), 'Event cannot be scheduled more than 2 years in advance');
+      isValid = false;
+    }
+  }
 
-        createToast('Event created successfully! Redirecting...', 'success');
-        setTimeout(() => {
-          window.location.href = '/events';
-        }, 2000);
-      } catch (error) {
-        console.error('Error creating event:', error);
-        createToast(`An error occurred: ${error.message}`, 'error');
+  // Location validation
+  if (!location) {
+    displayError(document.getElementById('event-location'), 'Event location is required');
+    isValid = false;
+  } else if (location.length < 3) {
+    displayError(document.getElementById('event-location'), 'Location must be at least 3 characters long');
+    isValid = false;
+  } else if (location.length > 255) {
+    displayError(document.getElementById('event-location'), 'Location cannot exceed 255 characters');
+    isValid = false;
+  }
+
+  // Category validation - ensure it's one of the categories fetched from the backend
+  if (!category) {
+    displayError(categorySelect, 'Please select an event category');
+    isValid = false;
+  } else {
+    // Use the categories array that was fetched from the server
+    const validCategories = categories.map(cat => cat.toLowerCase());
+    if (!validCategories.includes(category.toLowerCase())) {
+      displayError(categorySelect, 'Please select a valid category');
+      isValid = false;
+    }
+  }
+
+  // Image caption validation (if image is selected)
+  if (imageInput && imageInput.files && imageInput.files.length > 0 && imageCaption.length > 255) {
+    const captionInput = document.getElementById('image-caption');
+    displayError(captionInput, 'Image caption cannot exceed 255 characters');
+    isValid = false;
+  }
+
+  if (!isValid) {
+    // Scroll to the first error
+    const firstError = document.querySelector('.form-input-error');
+    if (firstError) {
+      firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstError.focus();
+    }
+    return;
+  }
+
+  const dateScheduled = dateTimeInput ? new Date(dateTimeInput).toISOString() : '';
+
+  try {
+    // Show loading state on button
+    const submitButton = formButton;
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = `
+      <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" stroke-opacity="0.25" stroke-dasharray="32" stroke-dashoffset="0"></circle>
+        <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="16"></circle>
+      </svg>
+      Processing...
+    `;
+
+    // Create FormData for multipart/form-data submission
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('date_scheduled', dateScheduled);
+    formData.append('location', location);
+    formData.append('category', category);
+    formData.append('author_id', userId);
+    
+    // Add image file if selected
+    if (imageInput && imageInput.files && imageInput.files.length > 0) {
+      formData.append('image_file', imageInput.files[0]);
+      
+      // Add image caption if available
+      if (imageCaption) {
+        formData.append('image_caption', imageCaption);
       }
+    }
+
+    // Send data to the server
+    const createResponse = await fetch('/events/create_event', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        // Don't set Content-Type header - the browser will set it with the correct boundary for FormData
+      },
+      body: formData,
     });
+
+    // Reset button state
+    submitButton.disabled = false;
+    submitButton.innerHTML = originalButtonText;
+
+    if (!createResponse.ok) {
+      const errorData = await createResponse.json();
+      throw new Error(errorData.detail || 'Failed to create event');
+    }
+
+    createToast('Event created successfully! Redirecting...', 'success');
+    setTimeout(() => {
+      window.location.href = '/events';
+    }, 2000);
+  } catch (error) {
+    console.error('Error creating event:', error);
+    createToast(`An error occurred: ${error.message}`, 'error');
+  }
+});
 
   } catch (error) {
     console.error('Error in event creation setup:', error);

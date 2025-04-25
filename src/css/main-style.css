@@ -734,6 +734,45 @@ header {
   font-size: var(--font-sm);
 }
 
+/* Comment content text wrapping */
+.comment-content p {
+  white-space: pre-wrap;      /* Preserves whitespace but wraps */
+  word-wrap: break-word;      /* Allows long words to break */
+  overflow-wrap: break-word;  /* Modern version of word-wrap */
+  word-break: break-word;     /* Breaks words only when necessary */
+  max-width: 100%;            /* Ensures text stays within container */
+  overflow: hidden;           /* In case content exceeds constraints */
+}
+
+/* Event content text wrapping */
+.event-content p {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Ensure any user-generated content has proper wrapping */
+.post-container .event-title,
+.post-container .event-content,
+.post-container .event-details,
+.comment-content,
+.reply-reference {
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Fix for very long words or URLs that might break layout */
+.comment-content a,
+.event-content a {
+  word-break: break-all;      /* Breaks URLs at any character when needed */
+  max-width: 100%;
+  display: inline-block;
+}
+
 /* ======= Search ======= */
 .search-container {
   position: relative;

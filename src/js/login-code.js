@@ -33,8 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
       </button>
     `;
     
-    // Add toast to body
-    document.body.appendChild(toast);
+    // Ensure toast is the first child
+    if (document.body.firstChild) {
+      document.body.insertBefore(toast, document.body.firstChild);
+    } else {
+      document.body.appendChild(toast);
+    }
     
     // Add event listener to close button
     toast.querySelector('.toast-close').addEventListener('click', () => {
@@ -61,97 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     return toast;
   };
-  
-  // Add toast styles to page
-  const style = document.createElement('style');
-  style.textContent = `
-    .toast-notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 16px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: white;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      z-index: 9999;
-      max-width: 350px;
-      transform: translateX(110%);
-      transition: transform 0.3s ease;
-    }
-    
-    .toast-visible {
-      transform: translateX(0);
-    }
-    
-    .toast-hidden {
-      transform: translateX(110%);
-    }
-    
-    .toast-success {
-      background-color: #10b981;
-    }
-    
-    .toast-error {
-      background-color: #ef4444;
-    }
-    
-    .toast-info {
-      background-color: #3b82f6;
-    }
-    
-    .toast-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .toast-message {
-      flex: 1;
-      font-size: 14px;
-    }
-    
-    .toast-close {
-      background: none;
-      border: none;
-      padding: 0;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      opacity: 0.7;
-      transition: opacity 0.2s;
-    }
-    
-    .toast-close:hover {
-      opacity: 1;
-    }
-    
-    .form-error {
-      color: #fecaca;
-      font-size: 0.75rem;
-      margin-top: 4px;
-      display: block;
-      text-align: left;
-    }
-    
-    .form-input-error {
-      border-color: #ef4444 !important;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    .spinner {
-      animation: spin 1s linear infinite;
-      margin-right: 8px;
-    }
-  `;
-  document.head.appendChild(style);
 
+  // Rest of the code remains the same
   // Toggle password visibility
   document.querySelectorAll('.toggle-password').forEach(button => {
     button.addEventListener('click', function() {

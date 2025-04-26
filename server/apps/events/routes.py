@@ -779,8 +779,7 @@ async def register_for_event(
             
             Thank you for registering for the event: {event.title}
             
-            Date: {event.date_scheduled.strftime('%Y-%m-%d %H:%M') \
-                   if event.date_scheduled else 'To be announced'}
+            Date: {event.date_scheduled.strftime('%Y-%m-%d %H:%M') if event.date_scheduled else 'To be announced'}
             Location: {event.location}
             
             We look forward to seeing you there!
@@ -789,6 +788,7 @@ async def register_for_event(
             The Community Events Team
             Tribuna
             """
+
             background_tasks.add_task(
                 send_email,
                 recipient_email=user.email,

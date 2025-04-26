@@ -1,18 +1,29 @@
+"""
+Schema definitions for Event-related data models using Pydantic.
+This module provides schemas for data validation and serialization for the Events application.
+"""
 from datetime import datetime
-from typing import List, Optional
-from pydantic import BaseModel, validator
 from enum import Enum
-from sqlmodel import Field
-from server.apps.events.models import EventCategory, Event, EventComment
-from uuid import uuid4, UUID
-from server.apps.authentication.models import User
+from typing import List, Optional
+from uuid import UUID
+
+from pydantic import BaseModel, validator
 from sqlalchemy.orm import Session
+from sqlmodel import Field
+
+from server.apps.authentication.models import User
+from server.apps.events.models import Event, EventCategory, EventComment
+
 
 class EventStatus(str, Enum):
+    """Enum representing the possible statuses of an event."""
     OPEN = "open"
     CLOSED = "closed"
     CANCELLED = "cancelled"
+
+
 class EventCreate(BaseModel):
+    """Schema for creating a new event."""
     title: str = Field(max_length=150, index=True)
     description: str = Field(max_length=1000)
     date_scheduled: Optional[datetime] = None
@@ -26,6 +37,7 @@ class EventCreate(BaseModel):
     @classmethod
     @validator("date_scheduled", pre=True, always=True)
     def parse_date_scheduled(cls, value):
+        """Validate and parse the date_scheduled field into a datetime object."""
         if value is None:
             return None
         if isinstance(value, datetime):
@@ -33,14 +45,16 @@ class EventCreate(BaseModel):
         try:
             print("Trying to parse date_scheduled:", value)
             return datetime.fromisoformat(value)  # Parse ISO 8601 string
-        except ValueError:
+        except ValueError as exc:
             print("Failed to parse date_scheduled:", value)
-            raise ValueError("Invalid date format for 'date_scheduled'. Expected ISO 8601 format.")
+            raise ValueError("Invalid date format for 'date_scheduled'" +\
+                             ". Expected ISO 8601 format.") from exc
 
-    
     model_config = {"from_attributes": True}
 
+
 class EventResponse(BaseModel):
+    """Schema for event response data."""
     id: UUID
     title: str
     description: str
@@ -57,15 +71,18 @@ class EventResponse(BaseModel):
     comments_count: int = Field(default=0)  # Add comments counter to response
 
     @classmethod
-    def from_orm(cls, event, db: Session):
-        # Existing code...
-        return cls(
-            # Existing fields...
-            comments_count=event.comments_count,  # Add to return
-        )
-
-    @classmethod
-    def from_orm(cls, event, db: Session):
+    def from_orm(cls, obj, db: Optional[Session] = None):
+        """
+        Convert an ORM event object to this schema, including author information.
+        
+        Args:
+            obj: The Event ORM object
+            db: Database session for related queries
+        
+        Returns:
+            EventResponse: The formatted event response
+        """
+        event = obj  # Use a local variable for clarity while keeping the method signature
         # Query the user by author_id
         user = db.query(User).filter(User.id == event.author_id).first()
         if not user:
@@ -89,29 +106,37 @@ class EventResponse(BaseModel):
             author_username=author_username,
             image_path=event.image_path,
             image_caption=event.image_caption,
-            votes = event.votes,
-            status = event.status,
-            comments_count = event.comments_count
+            votes=event.votes,
+            status=event.status,
+            comments_count=event.comments_count
         )
 
+
 class EventListResponse(BaseModel):
+    """Schema for a list of event responses."""
     events: List[EventResponse]
 
     model_config = {"from_attributes": True}
 
+
 class EventVoteResponse(BaseModel):
+    """Schema for event voting response."""
     event_id: str
     vote_count: int
     has_voted: bool
-    
+
     model_config = {"from_attributes": True}
 
+
 class EventRegistrationCreate(BaseModel):
+    """Schema for creating an event registration."""
     event_id: UUID
     user_id: UUID
     notes: Optional[str] = None
 
+
 class EventRegistrationResponse(BaseModel):
+    """Schema for event registration response."""
     id: UUID
     event_id: UUID
     user_id: UUID
@@ -120,12 +145,23 @@ class EventRegistrationResponse(BaseModel):
     notes: Optional[str] = None
     event_title: Optional[str] = None
     event_date: Optional[str] = None
-    
+
     @classmethod
-    def from_orm(cls, registration, db: Session):
+    def from_orm(cls, obj, db: Optional[Session] = None):
+        """
+        Convert an ORM registration object to this schema, including event information.
+        
+        Args:
+            obj: The EventRegistration ORM object
+            db: Database session for related queries
+            
+        Returns:
+            EventRegistrationResponse: The formatted registration response
+        """
+        registration = obj  # Use a local variable for clarity while keeping the method signature
         # Get event information
         event = db.query(Event).filter(Event.id == registration.event_id).first()
-        
+
         return cls(
             id=registration.id,
             event_id=registration.event_id,
@@ -136,19 +172,25 @@ class EventRegistrationResponse(BaseModel):
             event_title=event.title if event else None,
             event_date=event.date_scheduled.isoformat() if event and event.date_scheduled else None
         )
-    
+
     model_config = {"from_attributes": True}
+
 
 class EventRegistrationListResponse(BaseModel):
+    """Schema for a list of event registration responses."""
     registrations: List[EventRegistrationResponse]
-    
+
     model_config = {"from_attributes": True}
 
+
 class EventCommentCreate(BaseModel):
+    """Schema for creating an event comment."""
     content: str
     parent_comment_id: Optional[UUID] = None
 
+
 class EventCommentResponse(BaseModel):
+    """Schema for event comment response."""
     id: UUID
     event_id: UUID
     user_id: UUID
@@ -157,32 +199,43 @@ class EventCommentResponse(BaseModel):
     date_created: str
     date_updated: Optional[str] = None
     parent_comment_id: Optional[UUID] = None
-    parent_comment_author: Optional[str] = None  # Add this field
-    
+    parent_comment_author: Optional[str] = None
+
     @classmethod
-    def from_orm(cls, comment, db: Session):
+    def from_orm(cls, obj, db: Optional[Session] = None):
+        """
+        Convert an ORM comment object to this schema, including author information.
+        
+        Args:
+            obj: The EventComment ORM object
+            db: Database session for related queries
+            
+        Returns:
+            EventCommentResponse: The formatted comment response
+        """
+        comment = obj  # Use a local variable for clarity while keeping the method signature
         # Query the user to get username
         user = db.query(User).filter(User.id == comment.user_id).first()
-        
+
         # Construct the username
         author_username = "Unknown User"
         if user:
             author_username = user.first_name
             if user.last_name:
                 author_username += f" {user.last_name}"
-        
+
         # Get parent comment author if this is a reply
         parent_comment_author = None
         if comment.parent_comment_id:
             parent_comment = db.query(EventComment).filter(
                 EventComment.id == comment.parent_comment_id
             ).first()
-            
+
             if parent_comment:
                 parent_user = db.query(User).filter(
                     User.id == parent_comment.user_id
                 ).first()
-                
+
                 if parent_user:
                     parent_comment_author = parent_user.first_name
                     if parent_user.last_name:
@@ -197,11 +250,14 @@ class EventCommentResponse(BaseModel):
             date_created=comment.date_created.isoformat(),
             date_updated=comment.date_updated.isoformat() if comment.date_updated else None,
             parent_comment_id=comment.parent_comment_id,
-            parent_comment_author=parent_comment_author  # Add this field
+            parent_comment_author=parent_comment_author
         )
-    
+
     model_config = {"from_attributes": True}
+
+
 class EventCommentListResponse(BaseModel):
+    """Schema for a list of event comment responses."""
     comments: List[EventCommentResponse]
-    
+
     model_config = {"from_attributes": True}

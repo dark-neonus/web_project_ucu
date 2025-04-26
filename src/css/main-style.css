@@ -1,6 +1,5 @@
 /* 
-  Main CSS File - Optimized & Refactored
-  Consolidated design system with improved organization and performance
+  Main CSS File
 */
 
 /* ======= Variables & Design Tokens ======= */
@@ -531,7 +530,7 @@ header {
   flex: 1;
   padding: var(--space-xl);
   width: 100%;
-  min-width: 0; /* Prevents overflow */
+  min-width: 0;
 }
 
 .profile-section, 
@@ -734,17 +733,15 @@ header {
   font-size: var(--font-sm);
 }
 
-/* Comment content text wrapping */
 .comment-content p {
-  white-space: pre-wrap;      /* Preserves whitespace but wraps */
-  word-wrap: break-word;      /* Allows long words to break */
-  overflow-wrap: break-word;  /* Modern version of word-wrap */
-  word-break: break-word;     /* Breaks words only when necessary */
-  max-width: 100%;            /* Ensures text stays within container */
-  overflow: hidden;           /* In case content exceeds constraints */
+  white-space: pre-wrap;      
+  word-wrap: break-word;     
+  overflow-wrap: break-word;  
+  word-break: break-word;     
+  max-width: 100%;            
+  overflow: hidden;        
 }
 
-/* Event content text wrapping */
 .event-content p {
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -754,7 +751,6 @@ header {
   overflow: hidden;
 }
 
-/* Ensure any user-generated content has proper wrapping */
 .post-container .event-title,
 .post-container .event-content,
 .post-container .event-details,
@@ -765,10 +761,9 @@ header {
   overflow-wrap: break-word;
 }
 
-/* Fix for very long words or URLs that might break layout */
 .comment-content a,
 .event-content a {
-  word-break: break-all;      /* Breaks URLs at any character when needed */
+  word-break: break-all; 
   max-width: 100%;
   display: inline-block;
 }
@@ -825,9 +820,7 @@ header {
   background-repeat: no-repeat;
   background-position: center;
 }
-/* Toast notification styles */
 
-/* Toast Notification Base Styles */
 .toast-notification {
   position: fixed;
   top: 20px;
@@ -856,7 +849,6 @@ header {
   opacity: 0;
 }
 
-/* Toast Types */
 .toast-success {
   background-color: rgba(16, 185, 129, 0.95);
   border-left: 4px solid #059669;
@@ -877,7 +869,6 @@ header {
   border-left: 4px solid #d97706;
 }
 
-/* Toast Components */
 .toast-icon {
   display: flex;
   align-items: center;
@@ -916,7 +907,6 @@ header {
   opacity: 1;
 }
 
-/* Progress Bar */
 .toast-progress-bar {
   position: absolute;
   bottom: 0;
@@ -933,7 +923,6 @@ header {
   width: 100%;
 }
 
-/* Action Buttons */
 .toast-actions {
   display: flex;
   gap: 8px;
@@ -972,7 +961,6 @@ header {
   background-color: rgba(220, 38, 38, 1);
 }
 
-/* Multiple Toast Positioning */
 .toast-notification:nth-child(1) {
   top: 20px;
 }
@@ -1005,7 +993,6 @@ header {
   to { transform: rotate(360deg); }
 }
 
-/* SVG Icons */
 .icon-login { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpolyline points='12 6 12 12 16 14'%3E%3C/polyline%3E%3C/svg%3E"); }
 .icon-register { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E"); }
 .icon-search { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E"); }

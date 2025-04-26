@@ -92,7 +92,6 @@
   .button-secondary:hover {
     background-color: var(--bg-light-hover);
   }
-  /* Fix for Add Image button functionality */
 .upload-button-wrapper {
   position: relative;
   width: 100%;
@@ -103,9 +102,7 @@
   width: 100%;
 }
 
-/* Better responsive styles for small screens */
 @media screen and (max-width: 768px) {
-  /* Make form buttons stack on small screens */
   .form-actions {
     flex-direction: column;
   }
@@ -115,24 +112,20 @@
     justify-content: center;
   }
   
-  /* Simplify buttons on small screens */
   .form-button svg {
-    display: none; /* Hide icons on small screens */
+    display: none;
   }
   
-  /* Make font smaller on small screens */
   .form-button {
     font-size: var(--font-sm);
     padding: var(--space-sm) var(--space-md);
   }
   
-  /* Adjust event form fields to stack on small screens */
   .event-form-fields {
     display: flex;
     flex-direction: column;
   }
   
-  /* Make image upload UI more compact */
   .upload-controls-row {
     flex-direction: column;
     align-items: flex-start;
@@ -142,25 +135,21 @@
     margin-top: 10px;
   }
   
-  /* Adjust form title size */
   .form-title {
     font-size: var(--font-xl);
   }
 }
 
-/* Fix for the upload button toggle state */
 .button-secondary.active {
   background-color: var(--bg-light-hover);
 }
 
-/* Make image preview display better */
 .preview-container {
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-md);
   overflow: hidden;
 }
 
-/* Fix form input error styles */
 .form-input-error {
   border-color: var(--error-color) !important;
 }
@@ -172,7 +161,6 @@
   display: block;
 }
 
-/* Add shake animation for error validation */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20%, 60% { transform: translateX(-5px); }

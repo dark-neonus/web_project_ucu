@@ -29,7 +29,6 @@ body {
   cursor: pointer;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   
-  /* Add these properties to enhance clickability appearance */
   padding: 8px 12px;
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 6px;
@@ -40,7 +39,6 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* Optional: add a subtle animation to draw attention */
 @keyframes subtle-pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.02); }
@@ -204,7 +202,6 @@ body {
   z-index: 2;
 }
 
-/* Form validation styles */
 .form-error {
   color: #fecaca;
   font-size: 0.75rem;
@@ -229,7 +226,6 @@ body {
   box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3) !important;
 }
 
-/* Spinner animation for submit button */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -240,7 +236,6 @@ body {
   vertical-align: middle;
 }
 
-/* Password requirements list styling */
 .password-requirements {
   list-style: none;
   padding: 0;
@@ -362,7 +357,6 @@ body {
   color: white;
 }
 
-/* Responsive adjustments */
 @media (max-width: 480px) {
   .auth-form {
     padding: var(--space-lg);

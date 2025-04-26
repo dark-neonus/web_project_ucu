@@ -2,7 +2,6 @@ body {
   background-color: white;
 }
 
-/* Left sidebar */
 .left-sidebar {
   padding: var(--space-md);
 }
@@ -35,11 +34,10 @@ body {
   transform: translateY(-1px);
 }
 
-/* Main content area */
 .main-content {
   padding: var(--space-md);
   width: 100%;
-  min-width: 0; /* Prevents overflow */
+  min-width: 0;
 }
 
 .post:hover {
@@ -51,7 +49,7 @@ body {
 .avatar {
   height: 2.5rem;
   width: 2.5rem;
-  min-width: 2.5rem; /* Prevent shrinking */
+  min-width: 2.5rem;
   background-color: var(--bg-light);
   border-radius: 50%;
   overflow: hidden;
@@ -65,7 +63,6 @@ body {
 }
 
 
-/* Right sidebar */
 .right-sidebar {
   padding: var(--space-md);
 
@@ -110,7 +107,6 @@ body {
   text-decoration: underline;
 }
 
-/* Post styling */
 .posts-container {
   display: grid;
   gap: var(--space-lg);
@@ -244,7 +240,6 @@ body {
   font-size: var(--font-sm);
 }
 
-/* ======= Filters ======= */
 .filter-tabs {
   display: flex;
   gap: var(--space-sm);
@@ -272,7 +267,6 @@ body {
   background-color: var(--medium-gray);
 }
 
-/* Category dropdown styles */
 .category-filter-container {
   position: relative;
   margin-left: auto;
@@ -296,7 +290,6 @@ body {
   outline: none;
 }
 
-/* Custom dropdown arrow */
 .category-filter-container::after {
   content: "▼";
   font-size: 0.7em;
@@ -307,7 +300,6 @@ body {
   pointer-events: none;
 }
 
-/* Style for dropdown options when expanded */
 .category-dropdown option {
   background-color: var(--bg-light);
   padding: var(--space-xs);
@@ -359,7 +351,6 @@ body {
   }
 }
 
-/* Responsive adjustments */
 @media screen and (max-width: 960px) {
   .post img {
     max-height: 180px;

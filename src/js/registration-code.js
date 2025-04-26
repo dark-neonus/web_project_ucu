@@ -1,5 +1,5 @@
 import { createToast } from './utils/toast-utils.js';
-import { showInputError, clearFormErrors, isValidEmail, setSubmitButtonState } from './utils/validation.js ';
+import { showInputError, clearFormErrors, isValidEmail, setSubmitButtonState } from './utils/validation-utils.js ';
 
 function validatePassword(password) {
   const requirements = {

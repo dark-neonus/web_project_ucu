@@ -1,4 +1,3 @@
-/* Hero Banner */
 .hero-banner {
     margin-top: var(--header-height);
     background-color: var(--primary-color);
@@ -52,7 +51,6 @@
     color: var(--text-secondary);
 }
 
-/* Features Section */
 .features-section {
     padding: var(--space-xl) var(--space-md);
 }

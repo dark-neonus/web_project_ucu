@@ -1,20 +1,25 @@
-from server.core.database import get_db
-from server.apps.authentication.models import User, Role
-from server.apps.events.models import Event, EventCategory, EventComment, EventStatus, EventVote, EventRegistration
-from server.core.security import hash_password
-from sqlalchemy.orm import Session
+"""
+Module to populate the database with initial data for users and events.
+"""
+
 import datetime
 import random
-import uuid
+from sqlalchemy.orm import Session
+
+from server.core.database import get_db
+from server.apps.authentication.models import User, Role
+from server.apps.events.models import Event, EventCategory, EventComment, \
+      EventStatus, EventVote, EventRegistration
+from server.core.security import hash_password
 
 def fill_db():
     """Fill the database with meaningful initial data for users and events"""
     print("Starting database initialization...")
     db: Session = next(get_db())
-    
+
     # Create users with different roles
     print("Creating users...")
-    
+
     # Admin user
     admin_user = User(
         first_name="Admin",
@@ -27,7 +32,7 @@ def fill_db():
     db.add(admin_user)
     db.commit()
     db.refresh(admin_user)
-    
+
     # Regular users with meaningful profiles
     users = [
         User(
@@ -35,14 +40,16 @@ def fill_db():
             last_name="Pasichnyk",
             email="nazar@gmail.com",
             hashed_password=hash_password('1234'),
-            bio="UCU student majoring in Computer Science. Interested in mobile app development and AI."
+            bio="UCU student majoring in Computer Science." +\
+                  " Interested in mobile app development and AI."
         ),
         User(
             first_name="Roman",
             last_name="Prokhorov",
             email="roman@gmail.com",
             hashed_password=hash_password('1234'),
-            bio="Graphic designer and web developer with 5 years of experience. Creates beautiful UIs."
+            bio="Graphic designer and web developer with 5 years of" +\
+                  " experience. Creates beautiful UIs."
         ),
         User(
             first_name="Daryna",
@@ -56,7 +63,8 @@ def fill_db():
             last_name="Karpina",
             email="olesia@gmail.com",
             hashed_password=hash_password('1234'),
-            bio="Teacher at local school. Passionate about educational reform and modern teaching methods."
+            bio="Teacher at local school. Passionate about educational" + \
+             " reform and modern teaching methods."
         ),
         User(
             first_name="Козак",
@@ -77,7 +85,8 @@ def fill_db():
             last_name="Kravchenko",
             email="oleh@gmail.com",
             hashed_password=hash_password('1234'),
-            bio="IT specialist with a passion for cybersecurity. Conducts workshops on digital safety."
+            bio="IT specialist with a passion for cybersecurity." + \
+                 " Conducts workshops on digital safety."
         ),
         User(
             first_name="Sophia",
@@ -87,37 +96,39 @@ def fill_db():
             bio="Medical student and volunteer at local hospital."
         )
     ]
-    
+
     # Add and commit meaningful users
     for user in users:
         db.add(user)
         db.commit()
         db.refresh(user)
-    
+
     # Add bulk users with basic profiles
     bulk_users = []
     for i in range(9, 30):
-        first_names = ["Andriy", "Bohdan", "Viktoria", "Iryna", "Yulia", "Taras", "Petro", "Anna", "Natalia", "Ivan"]
-        last_names = ["Melnyk", "Shevchuk", "Boyko", "Koval", "Tkachenko", "Ponomarenko", "Fedorenko", "Onyshchenko"]
-        
+        first_names = ["Andriy", "Bohdan", "Viktoria", "Iryna", "Yulia", \
+                       "Taras", "Petro", "Anna", "Natalia", "Ivan"]
+        last_names = ["Melnyk", "Shevchuk", "Boyko", "Koval", "Tkachenko", \
+                      "Ponomarenko", "Fedorenko", "Onyshchenko"]
+
         bulk_user = User(
             first_name=random.choice(first_names),
             last_name=random.choice(last_names),
             email=f"user{i}@example.com",
             hashed_password=hash_password('1234'),
-            bio=f"Community member since 2025. Interested in local events and networking."
+            bio="Community member since 2025. Interested in local events and networking."
         )
         bulk_users.append(bulk_user)
         db.add(bulk_user)
         db.commit()
         db.refresh(bulk_user)
-    
+
     all_users = users + bulk_users + [admin_user]
     print(f"Created {len(all_users)} users")
-    
+
     # Create meaningful events
     print("Creating events...")
-    
+
     # Predefined meaningful events
     meaningful_events = [
         Event(
@@ -266,23 +277,26 @@ def fill_db():
             votes=0
         )
     ]
-    
+
     events_with_ids = []
     for event in meaningful_events:
         db.add(event)
         db.commit()
         db.refresh(event)
         events_with_ids.append(event)
-    
+
     # Create bulk events with some variety
     event_descriptions = [
-        "Join us for this exciting community event! Networking opportunities, discussions, and refreshments will be provided.",
+        "Join us for this exciting community event! Networking opportunities," +\
+        "discussions, and refreshments will be provided.",
         "Learn new skills at this interactive workshop. Suitable for beginners and experts alike.",
         "A charity fundraiser to support local causes. Every donation makes a difference.",
-        "An informational session about important community issues. Come share your thoughts and learn from others.",
-        "Celebrate local culture with us at this festive gathering! Food, music, and activities for all ages."
+        "An informational session about important community issues." +\
+             " Come share your thoughts and learn from others.",
+        "Celebrate local culture with us at this festive gathering!" +\
+            " Food, music, and activities for all ages."
     ]
-    
+
     event_locations = [
         "Lviv, Center",
         "Kyiv, Innovation Park",
@@ -295,39 +309,41 @@ def fill_db():
         "Kyiv, Olympic Stadium",
         "Odesa, Literature Museum"
     ]
-    
+
     # Generate additional bulk events
     bulk_events = []
     for i in range(8, 50):
         future_date = datetime.datetime.now() + datetime.timedelta(days=random.randint(10, 500))
         bulk_event = Event(
-            title=f"Community Event: {random.choice(['Workshop', 'Meetup', 'Discussion', 'Presentation', 'Conference'])} #{i}",
+            title=f"Community Event: {random.choice(['Workshop', \
+                            'Meetup', 'Discussion', 'Presentation', 'Conference'])} #{i}",
             description=random.choice(event_descriptions),
             date_scheduled=future_date.replace(hour=random.randint(9, 20), minute=0),
             category=random.choice(list(EventCategory)),
             author_id=random.choice(all_users).id,
             location=random.choice(event_locations),
-            status=random.choice([EventStatus.OPEN, EventStatus.OPEN, EventStatus.OPEN, EventStatus.CLOSED]),
+            status=random.choice([EventStatus.OPEN, EventStatus.OPEN, \
+                                  EventStatus.OPEN, EventStatus.CLOSED]),
             votes=0  # Initialize with 0 - we'll add votes as objects
         )
         db.add(bulk_event)
         db.commit()
         db.refresh(bulk_event)
         bulk_events.append(bulk_event)
-    
+
     # Combine all events
     all_events = events_with_ids + bulk_events
     print(f"Created {len(all_events)} events")
-    
+
     # Adding event votes as separate objects
     print("Adding event votes...")
-    
+
     # Add votes to meaningful events
     for event in events_with_ids:
         # Generate between 30-200 votes for meaningful events
         vote_count = random.randint(30, 200)
         event_voters = random.sample(all_users, min(vote_count, len(all_users)))
-        
+
         for voter in event_voters:
             # Create a vote object
             vote = EventVote(
@@ -340,20 +356,20 @@ def fill_db():
                 )
             )
             db.add(vote)
-            
+
             # Increment the vote counter in the event
             event.votes += 1
-        
+
         db.commit()
-    
+
     # Add random votes to bulk events
     for event in bulk_events:
         # Generate between 0-50 votes for bulk events
         vote_count = random.randint(0, 50)
-        
+
         if vote_count > 0:
             event_voters = random.sample(all_users, min(vote_count, len(all_users)))
-            
+
             for voter in event_voters:
                 # Create a vote object
                 vote = EventVote(
@@ -366,17 +382,17 @@ def fill_db():
                     )
                 )
                 db.add(vote)
-                
+
                 # Increment the vote counter in the event
                 event.votes += 1
-            
+
             db.commit()
-    
+
     print("Added votes to events")
-    
+
     # Adding event comments
     print("Creating event comments...")
-    
+
     comment_texts = [
         "Looking forward to this event! Can't wait to attend.",
         "I attended something similar last year and it was great. Highly recommended!",
@@ -394,34 +410,36 @@ def fill_db():
         "Can you share more details about the speakers?",
         "Is the venue wheelchair accessible?"
     ]
-    
+
     # Add multiple comments to each event
     for event in all_events:
         # Each event gets between 0-10 comments
         comment_count = random.randint(0, 10)
-        
+
         for _ in range(comment_count):
             comment = EventComment(
                 content=random.choice(comment_texts),
                 event_id=event.id,
                 user_id=random.choice(all_users).id,
-                date_created=datetime.datetime.now() - datetime.timedelta(days=random.randint(1, 30)),
+                date_created=datetime.datetime.now() - \
+                    datetime.timedelta(days=random.randint(1, 30)),
                 votes=random.randint(0, 15)
             )
             db.add(comment)
-            
+
             # Update the comments_count field in the event
             event.comments_count += 1
-    
+
     db.commit()
-    print(f"Added comments to events")
-    
+    print("Added comments to events")
+
     # Add threaded comments (replies to comments)
     print("Adding comment replies...")
-    
+
     reply_texts = [
         "Thanks for your question! Yes, there will be ample parking available.",
-        "The event is definitely suitable for beginners. The instructors are very patient and helpful.",
+        "The event is definitely suitable for beginners." +\
+         " The instructors are very patient and helpful.",
         "I've been to similar events, and they usually last about 3 hours.",
         "According to the organizers, light refreshments will be provided.",
         "Yes, the venue is fully wheelchair accessible with ramps and elevators.",
@@ -431,10 +449,10 @@ def fill_db():
         "I can confirm that you can bring guests, but they need to register separately.",
         "The dress code is smart casual, nothing too formal required."
     ]
-    
+
     # Get all comments
-    all_comments = db.query(EventComment).filter(EventComment.parent_comment_id.is_(None)).all()
-    
+    all_comments = db.query(EventComment).filter(EventComment.parent_comment_id is None).all()
+
     # Add replies to some comments
     for comment in all_comments:
         # 30% chance of comment having replies
@@ -452,26 +470,27 @@ def fill_db():
                     votes=random.randint(0, 5)
                 )
                 db.add(reply)
-                
+
                 # Update the comments_count field in the event
                 event = db.query(Event).filter(Event.id == comment.event_id).first()
                 if event:
                     event.comments_count += 1
-    
+
     db.commit()
     print("Added replies to comments")
-    
+
     # Add event registrations for some users
     print("Adding event registrations...")
-    
+
     # Only add registrations for upcoming events
-    future_events = [event for event in all_events if event.date_scheduled > datetime.datetime.now()]
-    
+    future_events = [event for event in all_events \
+                      if event.date_scheduled > datetime.datetime.now()]
+
     for event in future_events:
         # Between 5-20 registrations for each event
         registration_count = random.randint(5, 20)
         event_attendees = random.sample(all_users, min(registration_count, len(all_users)))
-        
+
         for attendee in event_attendees:
             # Add event registration
             registration = EventRegistration(
@@ -484,8 +503,8 @@ def fill_db():
                 attendance_status=random.choice(["registered", "confirmed", "attended"])
             )
             db.add(registration)
-    
+
     db.commit()
     print("Added event registrations")
-    
+
     print("Database filled with initial data for users and events.")

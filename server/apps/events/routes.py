@@ -1077,7 +1077,7 @@ async def get_event_comments(
     # Get all non-deleted comments for this event
     comments = db.query(EventComment).filter(
         EventComment.event_id == event_uuid,
-        EventComment.is_deleted is False
+        EventComment.is_deleted == False  # pylint: disable=singleton-comparison
     ).order_by(asc(EventComment.date_created)).all()
 
     # Convert to response models
@@ -1118,7 +1118,7 @@ async def update_comment(
     # Get the comment
     comment = db.query(EventComment).filter(
         EventComment.id == comment_uuid,
-        EventComment.is_deleted is False
+        EventComment.is_deleted == False  # pylint: disable=singleton-comparison
     ).first()
 
     if not comment:
@@ -1169,7 +1169,7 @@ async def delete_comment(
     # Get the comment
     comment = db.query(EventComment).filter(
         EventComment.id == comment_uuid,
-        EventComment.is_deleted is False
+        EventComment.is_deleted == False  # pylint: disable=singleton-comparison
     ).first()
 
     if not comment:
@@ -1211,7 +1211,7 @@ def migrate_comments_count(db: Session):
         # Count non-deleted comments for this event
         comment_count = db.query(EventComment).filter(
             EventComment.event_id == event.id,
-            EventComment.is_deleted is False
+            EventComment.is_deleted == False # pylint: disable=singleton-comparison
         ).count()
 
         # Update the event with the correct count

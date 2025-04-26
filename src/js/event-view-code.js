@@ -1,12 +1,14 @@
 import {formatEventDates} from './utils/post-format-utils.js';
 import {adjustUserEventsLink} from './user-events-link.js';
 import {getAuthToken} from './utils/auth-utils.js';
+import {loadEventComments} from './event-comments.js'
 
 document.addEventListener('DOMContentLoaded', function() {
   formatEventDates();
   setupEventListeners();
   adjustUserEventsLink();
   checkRegistrationStatus();
+  loadEventComments();
 });
 
 async function checkRegistrationStatus() {

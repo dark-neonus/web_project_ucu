@@ -40,16 +40,14 @@ def fill_db():
             last_name="Pasichnyk",
             email="nazar@gmail.com",
             hashed_password=hash_password('1234'),
-            bio="UCU student majoring in Computer Science." +\
-                  " Interested in mobile app development and AI."
+            bio="UCU student majoring in Computer Science. Interested in mobile app development and AI."
         ),
         User(
             first_name="Roman",
             last_name="Prokhorov",
             email="roman@gmail.com",
             hashed_password=hash_password('1234'),
-            bio="Graphic designer and web developer with 5 years of" +\
-                  " experience. Creates beautiful UIs."
+            bio="Graphic designer and web developer with 5 years of experience. Creates beautiful UIs."
         ),
         User(
             first_name="Daryna",
@@ -63,8 +61,7 @@ def fill_db():
             last_name="Karpina",
             email="olesia@gmail.com",
             hashed_password=hash_password('1234'),
-            bio="Teacher at local school. Passionate about educational" + \
-             " reform and modern teaching methods."
+            bio="Teacher at local school. Passionate about educational reform and modern teaching methods."
         ),
         User(
             first_name="Козак",
@@ -85,8 +82,7 @@ def fill_db():
             last_name="Kravchenko",
             email="oleh@gmail.com",
             hashed_password=hash_password('1234'),
-            bio="IT specialist with a passion for cybersecurity." + \
-                 " Conducts workshops on digital safety."
+            bio="IT specialist with a passion for cybersecurity. Conducts workshops on digital safety."
         ),
         User(
             first_name="Sophia",
@@ -106,10 +102,8 @@ def fill_db():
     # Add bulk users with basic profiles
     bulk_users = []
     for i in range(9, 30):
-        first_names = ["Andriy", "Bohdan", "Viktoria", "Iryna", "Yulia", \
-                       "Taras", "Petro", "Anna", "Natalia", "Ivan"]
-        last_names = ["Melnyk", "Shevchuk", "Boyko", "Koval", "Tkachenko", \
-                      "Ponomarenko", "Fedorenko", "Onyshchenko"]
+        first_names = ["Andriy", "Bohdan", "Viktoria", "Iryna", "Yulia", "Taras", "Petro", "Anna", "Natalia", "Ivan"]
+        last_names = ["Melnyk", "Shevchuk", "Boyko", "Koval", "Tkachenko", "Ponomarenko", "Fedorenko", "Onyshchenko"]
 
         bulk_user = User(
             first_name=random.choice(first_names),
@@ -287,14 +281,11 @@ def fill_db():
 
     # Create bulk events with some variety
     event_descriptions = [
-        "Join us for this exciting community event! Networking opportunities," +\
-        "discussions, and refreshments will be provided.",
+        "Join us for this exciting community event! Networking opportunities, discussions, and refreshments will be provided.",
         "Learn new skills at this interactive workshop. Suitable for beginners and experts alike.",
         "A charity fundraiser to support local causes. Every donation makes a difference.",
-        "An informational session about important community issues." +\
-             " Come share your thoughts and learn from others.",
-        "Celebrate local culture with us at this festive gathering!" +\
-            " Food, music, and activities for all ages."
+        "An informational session about important community issues. Come share your thoughts and learn from others.",
+        "Celebrate local culture with us at this festive gathering! Food, music, and activities for all ages."
     ]
 
     event_locations = [
@@ -315,15 +306,13 @@ def fill_db():
     for i in range(8, 50):
         future_date = datetime.datetime.now() + datetime.timedelta(days=random.randint(10, 500))
         bulk_event = Event(
-            title=f"Community Event: {random.choice(['Workshop', \
-                            'Meetup', 'Discussion', 'Presentation', 'Conference'])} #{i}",
+            title=f"Community Event: {random.choice(['Workshop', 'Meetup', 'Discussion', 'Presentation', 'Conference'])} #{i}",
             description=random.choice(event_descriptions),
             date_scheduled=future_date.replace(hour=random.randint(9, 20), minute=0),
             category=random.choice(list(EventCategory)),
             author_id=random.choice(all_users).id,
             location=random.choice(event_locations),
-            status=random.choice([EventStatus.OPEN, EventStatus.OPEN, \
-                                  EventStatus.OPEN, EventStatus.CLOSED]),
+            status=random.choice([EventStatus.OPEN, EventStatus.OPEN, EventStatus.OPEN, EventStatus.CLOSED]),
             votes=0  # Initialize with 0 - we'll add votes as objects
         )
         db.add(bulk_event)
@@ -421,8 +410,7 @@ def fill_db():
                 content=random.choice(comment_texts),
                 event_id=event.id,
                 user_id=random.choice(all_users).id,
-                date_created=datetime.datetime.now() - \
-                    datetime.timedelta(days=random.randint(1, 30)),
+                date_created=datetime.datetime.now() - datetime.timedelta(days=random.randint(1, 30)),
                 votes=random.randint(0, 15)
             )
             db.add(comment)
@@ -438,8 +426,7 @@ def fill_db():
 
     reply_texts = [
         "Thanks for your question! Yes, there will be ample parking available.",
-        "The event is definitely suitable for beginners." +\
-         " The instructors are very patient and helpful.",
+        "The event is definitely suitable for beginners. The instructors are very patient and helpful.",
         "I've been to similar events, and they usually last about 3 hours.",
         "According to the organizers, light refreshments will be provided.",
         "Yes, the venue is fully wheelchair accessible with ramps and elevators.",
@@ -483,8 +470,7 @@ def fill_db():
     print("Adding event registrations...")
 
     # Only add registrations for upcoming events
-    future_events = [event for event in all_events \
-                      if event.date_scheduled > datetime.datetime.now()]
+    future_events = [event for event in all_events if event.date_scheduled > datetime.datetime.now()]
 
     for event in future_events:
         # Between 5-20 registrations for each event

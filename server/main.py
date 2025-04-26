@@ -58,7 +58,7 @@ def lifespan(app_instance: FastAPI):
 logging.basicConfig()
 logging.getLogger('apscheduler').setLevel(logging.DEBUG)
 
-app = FastAPI(lifespan=lifespan)  # Renamed from app_instance to app
+app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
 
 app.add_middleware(
     CORSMiddleware,

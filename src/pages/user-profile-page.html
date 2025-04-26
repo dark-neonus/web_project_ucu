@@ -76,20 +76,6 @@
           <div class="profile-header-details">
             <h1 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h1>
             <p class="profile-bio">{{ user.bio if user.bio else "No bio available" }}</p>
-            <div class="profile-stats">
-              <div class="stat">
-                <span class="stat-value">{{ user.post_count if user.post_count else "0" }}</span>
-                <span class="stat-label">Posts</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">{{ user.topic_count if user.topic_count else "0" }}</span>
-                <span class="stat-label">Topics</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">{{ user.likes_count if user.likes_count else "0" }}</span>
-                <span class="stat-label">Likes</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>

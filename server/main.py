@@ -13,6 +13,11 @@ from server.core.fill_database import fill_db
 from sqlalchemy.sql import text 
 from sqlalchemy import inspect  # Import the inspector to check for tables
 from server.apps.events.routes import configure_app_with_schedulers
+from apscheduler.schedulers.background import BackgroundScheduler
+from server.apps.authentication.email.send_email import send_event_reminder_emails
+import atexit
+import logging
+import apscheduler.events  # Import apscheduler events to resolve undefined variable
 
 def lifespan(app: FastAPI):
     # Startup logic
@@ -40,6 +45,10 @@ def lifespan(app: FastAPI):
 
     yield  # This marks the end of the startup phase and the beginning of the shutdown phase
     # Shutdown logic (if needed)
+
+logging.basicConfig()
+logging.getLogger('apscheduler').setLevel(logging.DEBUG)
+
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
@@ -74,3 +83,35 @@ def home_page():
         return HTMLResponse(content=html_content)
     else:
         return HTMLResponse(content="<h1>Home page not found</h1>", status_code=404)
+
+@app.on_event("startup")
+def init_scheduler():
+    scheduler = BackgroundScheduler()
+    # Run daily at 8:00 AM
+    scheduler.add_job(
+        send_event_reminder_emails, 
+        'cron', 
+        hour=8, 
+        minute=0,
+        id='event_reminder_email_job',
+        name='Daily Event Reminder Emails',
+        misfire_grace_time=60*60  # Allow the job to be an hour late if server was down
+    )
+    
+    # Add a logger to track when jobs are run
+    scheduler.add_listener(
+        lambda event: logging.info(f"Job {event.job_id} executed successfully"),
+        mask=apscheduler.events.EVENT_JOB_EXECUTED
+    )
+    
+    # Add a logger for job failures
+    scheduler.add_listener(
+        lambda event: logging.error(f"Job {event.job_id} failed with exception: {event.exception}"),
+        mask=apscheduler.events.EVENT_JOB_ERROR
+    )
+    
+    scheduler.start()
+    logging.info("Scheduler started - Event reminder emails will be sent daily at 8:00 AM")
+    
+    # Shut down the scheduler when app exits
+    atexit.register(lambda: scheduler.shutdown())

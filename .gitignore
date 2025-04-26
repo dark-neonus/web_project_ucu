@@ -176,3 +176,5 @@ database.db
 .vscode
 
 static/
+
+.VSCodeCounter

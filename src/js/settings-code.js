@@ -1,22 +1,12 @@
-// Settings page specific JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("Settings page script loaded");
-    
-    // Add CSS for notifications
-    const style = document.createElement('style');
-    
-    // Function to load user data with retry logic
+document.addEventListener('DOMContentLoaded', function() {    
     async function loadUserData(retry = 3) {
       try {
-        console.log(`Loading user data... (attempts left: ${retry})`);
         const token = localStorage.getItem('access_token');
         if (!token) {
-          console.log("No access token found");
           window.location.href = '/auth/login';
           return;
         }
         
-        console.log("Fetching user data with token");
         const response = await fetch('/auth/get_user_data', {
           method: 'GET',
           headers: {
@@ -26,9 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (response.ok) {
           const userData = await response.json();
-          console.log("User data loaded:", userData);
           
-          // Make sure the DOM elements exist before trying to update them
           if (document.getElementById('first_name')) {
             document.getElementById('first_name').value = userData.first_name || '';
           }
@@ -42,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('bio').value = userData.bio || '';
           }
           
-          // Update sidebar username
           const sidebarUsername = document.getElementById('sidebar-username');
           if (sidebarUsername) {
             sidebarUsername.textContent = `${userData.first_name} ${userData.last_name}`;
@@ -66,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           }
           
-          return userData; // Return the user data for potential use elsewhere
+          return userData;
         } else {
           console.error("Failed to load user data:", response.status);
           throw new Error('Failed to load user data');
@@ -74,8 +61,6 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch (error) {
         console.error('Error loading user data:', error);
         if (retry > 0) {
-          console.log(`Retrying... (${retry} attempts left)`);
-          // Wait a moment before retrying
           await new Promise(resolve => setTimeout(resolve, 500));
           return loadUserData(retry - 1);
         } else {
@@ -85,16 +70,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     
-    // Improved form validation function that aligns with User model constraints
     function validateSettingsForm(formData) {
       let isValid = true;
       const errors = {};
       
-      // Clear previous errors
       document.querySelectorAll('.form-error').forEach(el => el.remove());
       document.querySelectorAll('.form-input-error').forEach(el => el.classList.remove('form-input-error'));
       
-      // First name validation - match model constraints (2-50 chars)
       const firstName = formData.get('first_name').trim();
       if (!firstName) {
         const input = document.getElementById('first_name');
@@ -120,7 +102,6 @@ document.addEventListener('DOMContentLoaded', function() {
         isValid = false;
       }
       
-      // Last name validation - match model constraints (2-50 chars)
       const lastName = formData.get('last_name').trim();
       if (!lastName) {
         const input = document.getElementById('last_name');
@@ -146,7 +127,6 @@ document.addEventListener('DOMContentLoaded', function() {
         isValid = false;
       }
       
-      // Email validation
       const email = formData.get('email').trim();
       const emailInput = document.getElementById('email');
       if (!email) {
@@ -171,7 +151,6 @@ document.addEventListener('DOMContentLoaded', function() {
         isValid = false;
       }
 
-      // Bio validation - ensure bio doesn't exceed max length (500 chars)
       const bio = formData.get('bio').trim();
       if (bio && bio.length > 500) {
         const input = document.getElementById('bio');
@@ -186,9 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
         isValid = false;
       }
       
-      // Password validation (if changing password)
       if (formData.get('current_password') || formData.get('new_password') || formData.get('confirm_password')) {
-        // If any password field is filled, all password fields must be filled
         if (!formData.get('current_password')) {
           const input = document.getElementById('current_password');
           input.classList.add('form-input-error');
@@ -202,7 +179,6 @@ document.addEventListener('DOMContentLoaded', function() {
           isValid = false;
         }
         
-        // New password requirements
         const newPassword = formData.get('new_password');
         if (!newPassword) {
           const input = document.getElementById('new_password');
@@ -216,12 +192,10 @@ document.addEventListener('DOMContentLoaded', function() {
           errors.new_password = 'New password is required';
           isValid = false;
         } else {
-          // Check for comprehensive password strength requirements
           const hasMinLength = newPassword.length >= 8;
           const hasUppercase = /[A-Z]/.test(newPassword);
           const hasLowercase = /[a-z]/.test(newPassword);
           const hasNumbers = /[0-9]/.test(newPassword);
-          const hasSpecialChars = /[^A-Za-z0-9]/.test(newPassword);
           
           if (!hasMinLength || !hasUppercase || !hasLowercase || !hasNumbers) {
             const input = document.getElementById('new_password');
@@ -237,7 +211,6 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
         
-        // Confirm password
         if (!formData.get('confirm_password')) {
           const input = document.getElementById('confirm_password');
           input.classList.add('form-input-error');
@@ -263,7 +236,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       
-      // If validation fails, highlight the first error field
       if (!isValid) {
         const firstErrorField = document.querySelector('.form-input-error');
         if (firstErrorField) {
@@ -274,20 +246,16 @@ document.addEventListener('DOMContentLoaded', function() {
       return { isValid, errors };
     }
     
-    // Handle form submission
     const settingsForm = document.getElementById('settings-form');
     if (settingsForm) {
       settingsForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        console.log("Settings form submitted");
         
         const formData = new FormData(this);
         
-        // Validate form data before submission
         const { isValid, errors } = validateSettingsForm(formData);
         
         if (!isValid) {
-          console.log("Form validation failed:", errors);
           showNotification('Please correct the errors in the form', 'error');
           return;
         }
@@ -305,23 +273,17 @@ document.addEventListener('DOMContentLoaded', function() {
             email: formData.get('email').trim(),
             bio: formData.get('bio').trim()
           };
-          
-          console.log("Preparing to send user data:", userData);
-          
-          // Handle password change if provided
+                    
           if (formData.get('current_password') && formData.get('new_password')) {
             userData.current_password = formData.get('current_password');
             userData.new_password = formData.get('new_password');
           }
           
-          // Show loading state
           const submitButton = settingsForm.querySelector('button[type="submit"]');
           const originalButtonText = submitButton.innerHTML;
           submitButton.disabled = true;
           submitButton.innerHTML = '<span class="spinner"></span> Saving...';
           
-          // Send update request to the server
-          console.log("Sending update request");
           const updateResponse = await fetch('/auth/settings', {
             method: 'POST',
             headers: {
@@ -331,22 +293,16 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify(userData)
           });
           
-          // Reset button state
           submitButton.disabled = false;
           submitButton.innerHTML = originalButtonText;
-          
-          console.log("Update response status:", updateResponse.status);
-          
+                    
           if (updateResponse.ok) {
-            console.log("Settings updated successfully");
             showNotification('Settings updated successfully', 'success');
             
-            // Clear password fields
             document.getElementById('current_password').value = '';
             document.getElementById('new_password').value = '';
             document.getElementById('confirm_password').value = '';
             
-            // Reload user data to reflect changes
             await loadUserData();
           } else {
             const errorData = await updateResponse.json();
@@ -359,7 +315,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
       
-      // Add input event listeners for removing error styling
       const formInputs = settingsForm.querySelectorAll('input, textarea');
       formInputs.forEach(input => {
         input.addEventListener('input', function() {
@@ -372,7 +327,6 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error("Settings form element not found");
     }
     
-    // Check if avatar elements exist before adding listeners
     const avatarUpload = document.getElementById('avatar_upload');
     if (avatarUpload) {
       avatarUpload.addEventListener('change', function(e) {
@@ -405,11 +359,9 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
-    // Handle delete account
     const deleteAccountBtn = document.getElementById('delete_account');
     if (deleteAccountBtn) {
       deleteAccountBtn.addEventListener('click', function() {
-        console.log("Delete account button clicked");
         const modal = document.getElementById('confirmation-modal');
         if (modal) {
           modal.style.display = 'flex';
@@ -421,10 +373,8 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error("Delete account button not found");
     }
     
-    // Close modal
     document.querySelectorAll('.close-modal').forEach(button => {
       button.addEventListener('click', function() {
-        console.log("Close modal button clicked");
         const modal = document.getElementById('confirmation-modal');
         if (modal) {
           modal.style.display = 'none';
@@ -440,7 +390,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
     
-    // Handle delete confirmation text input
     const deleteConfirmationInput = document.getElementById('delete_confirmation');
     if (deleteConfirmationInput) {
       deleteConfirmationInput.addEventListener('input', function(e) {
@@ -453,11 +402,9 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error("Delete confirmation input not found");
     }
     
-    // Handle confirm delete
     const confirmDeleteBtn = document.getElementById('confirm_delete');
     if (confirmDeleteBtn) {
       confirmDeleteBtn.addEventListener('click', async function() {
-        console.log("Confirm delete button clicked");
         try {
           const token = localStorage.getItem('access_token');
           if (!token) {
@@ -465,11 +412,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
           }
           
-          // Show loading state
           confirmDeleteBtn.disabled = true;
           confirmDeleteBtn.innerHTML = '<span class="spinner"></span> Deleting...';
           
-          console.log("Sending delete account request");
           const response = await fetch('/auth/delete_account', {
             method: 'DELETE',
             headers: {
@@ -477,17 +422,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           });
           
-          // Reset button state (though it shouldn't matter as we're redirecting)
           confirmDeleteBtn.disabled = false;
           confirmDeleteBtn.textContent = 'Permanently Delete Account';
-          
-          console.log("Delete response status:", response.status);
-          
+                    
           if (response.ok) {
             localStorage.removeItem('access_token');
             showNotification('Account successfully deleted', 'success');
             
-            // Redirect to home page after a short delay
             setTimeout(() => {
               window.location.href = '/';
             }, 2000);
@@ -505,23 +446,17 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error("Confirm delete button not found");
     }
     
-    // Notification function
     function showNotification(message, type = 'info') {
-      console.log(`Notification: ${message} (${type})`);
-      // Create notification element
       const notification = document.createElement('div');
       notification.className = `notification ${type}`;
       notification.textContent = message;
       
-      // Add to document
       document.body.appendChild(notification);
       
-      // Show notification
       setTimeout(() => {
         notification.classList.add('show');
       }, 10);
       
-      // Hide and remove notification
       setTimeout(() => {
         notification.classList.remove('show');
         setTimeout(() => {
@@ -530,8 +465,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 3000);
     }
         
-    // Load user data on page load with a slight delay to ensure DOM is ready
-    console.log("Initiating user data load");
     setTimeout(() => {
       loadUserData();
     }, 100);

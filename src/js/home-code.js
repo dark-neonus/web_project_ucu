@@ -1,11 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Auth-related elements
-    const loginButton = document.querySelector('.login-button');
-    const registerButton = document.querySelector('.register-button');
-    const logoutButton = document.querySelector('.logout-button');
     const searchInput = document.querySelector('.search-input');
     
-    // Handle search functionality
     function setupSearch() {
       if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
@@ -19,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     
-    // Add hover effects to feature cards
     function setupFeatureCards() {
       document.querySelectorAll('.feature-card').forEach(card => {
         card.addEventListener('mouseenter', function() {
@@ -32,7 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
-    // Initialize all functionality
     setupSearch();
     setupFeatureCards();
   });

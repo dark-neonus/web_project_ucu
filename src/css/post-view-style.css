@@ -559,6 +559,66 @@
   color: var(--primary-color);
 }
 
+.comment-char-counter {
+  font-size: 12px;
+  color: #6c757d;
+  text-align: right;
+  margin-top: 4px;
+  margin-bottom: 10px;
+  transition: color 0.3s ease;
+}
+
+.comment-char-counter.warning {
+  color: #ffc107;
+}
+
+.comment-char-counter.error {
+  color: #dc3545;
+}
+
+.toast-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.toast-action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.toast-action-btn.toast-secondary {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.toast-action-btn.toast-secondary:hover {
+  background-color: #dee2e6;
+}
+
+.toast-action-btn.toast-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.toast-action-btn.toast-danger:hover {
+  background-color: #c82333;
+}
+
+.toast-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-notification {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
 
 /*
  * STATE INDICATORS
@@ -569,6 +629,51 @@
   padding: var(--space-md);
   color: var(--text-muted);
   font-size: var(--font-sm);
+}
+
+.comments-sorting {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background-color: var(--bg-light);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color-light);
+}
+
+.comments-sorting label {
+  font-size: var(--font-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.comments-sorting select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+  background-color: white;
+  cursor: pointer;
+  min-width: 120px;
+  appearance: menulist; /* Shows the dropdown arrow consistently across browsers */
+}
+
+.comments-sorting select:hover {
+  border-color: var(--primary-color);
+}
+
+.comments-sorting select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+}
+
+/* Add a slight shadow for depth */
+.comments-sorting {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .no-comments {

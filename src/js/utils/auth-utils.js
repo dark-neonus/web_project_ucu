@@ -1,8 +1,10 @@
-function fetchWithAuth(url, options = {}) {
+import { RateLimit } from "./rate-limit-utils.js";
+
+export function fetchWithAuth(url, options = {}) {
   const token = localStorage.getItem("access_token");
   
   if (!token) {
-    window.location.href = "/auth/login";
+    redirectToLogin();
     return Promise.reject("No auth token");
   }
   
@@ -14,24 +16,21 @@ function fetchWithAuth(url, options = {}) {
   return fetch(url, options)
     .then(response => {
       if (response.status === 401) {
-        // Try to refresh the token first
         return refreshToken()
           .then(success => {
             if (success) {
-              // Retry the original request with new token
               const newToken = localStorage.getItem("access_token");
               options.headers.Authorization = `Bearer ${newToken}`;
               return fetch(url, options);
             } else {
-              // If refresh fails, redirect to login
               localStorage.removeItem("access_token");
-              window.location.href = "/auth/login";
+              redirectToLogin();
               return response;
             }
           })
           .catch(() => {
             localStorage.removeItem("access_token");
-            window.location.href = "/auth/login";
+            redirectToLogin();
             return response;
           });
       }
@@ -39,7 +38,6 @@ function fetchWithAuth(url, options = {}) {
     });
 }
 
-// Add token refresh functionality
 async function refreshToken() {
   try {
     const refreshToken = localStorage.getItem("refresh_token");
@@ -68,11 +66,11 @@ async function refreshToken() {
   }
 }
 
-// Improved getUserId with better error messages
 export async function getUserId() {
   const token = localStorage.getItem('access_token');
   
   if (!token) {
+    createToast('No access token found. Please log in.', 'error');
     throw new Error('No access token found. User must be logged in.');
   }
   
@@ -80,13 +78,15 @@ export async function getUserId() {
     const response = await fetchWithAuth('/auth/get_user_id');
     
     if (!response.ok) {
+      let errorMessage = `Failed to fetch user ID: ${response.status}`;
       if (response.status === 401) {
-        throw new Error('Authentication expired. Please log in again.');
+        errorMessage = 'Authentication expired. Please log in again.';
       } else if (response.status === 500) {
-        throw new Error('Server error. The server might have restarted.');
-      } else {
-        throw new Error(`Failed to fetch user ID: ${response.status}`);
+        errorMessage = 'Server error. The server might have restarted.';
       }
+      
+      createToast(errorMessage, 'error');
+      throw new Error(errorMessage);
     }
     
     const data = await response.json();
@@ -97,7 +97,6 @@ export async function getUserId() {
   }
 }
 
-// Keep the original getAuthToken function
 export function getAuthToken() {
   return localStorage.getItem('access_token');
 }
@@ -110,12 +109,15 @@ export function redirectToLogin() {
   window.location.href = '/auth/login';
 }
 
-// Function to check if the server is available
+const serverCheckRateLimit = new RateLimit(5000);
+
 export async function checkServerConnection() {
+  if (!serverCheckRateLimit.check()) return;
+  
   try {
     const response = await fetch('/api/health-check', { 
       method: 'GET',
-      cache: 'no-store' // Prevent caching
+      cache: 'no-store'
     });
     return response.ok;
   } catch (error) {
@@ -123,32 +125,40 @@ export async function checkServerConnection() {
   }
 }
 
-// Add server reconnection logic
 export function setupServerReconnection() {
   let serverAvailable = true;
   
-  // Check server status periodically
   setInterval(async () => {
     const isAvailable = await checkServerConnection();
     
     if (!isAvailable && serverAvailable) {
-      // Server just went down
       serverAvailable = false;
-      console.log("Server connection lost. Waiting for reconnection...");
+      createToast("Server connection lost. Waiting for reconnection...", "warning", {
+        duration: 0,
+        id: "server-connection-toast"
+      });
     } else if (isAvailable && !serverAvailable) {
-      // Server just came back up
       serverAvailable = true;
-      console.log("Server reconnected. Refreshing authentication...");
       
-      // Try to refresh the token
+      const connectionToast = document.getElementById("server-connection-toast");
+      if (connectionToast) {
+        dismissToast(connectionToast);
+      }
+      
       const success = await refreshToken();
       if (!success && isAuthenticated()) {
-        // If token refresh fails but we have a token, redirect to login
-        alert("Server restarted. Please log in again.");
-        redirectToLogin();
+        createToast("Server restarted. Please log in again.", "error", {
+          duration: 5000,
+          action: {
+            text: "Login",
+            callback: redirectToLogin
+          }
+        });
+      } else {
+        createToast("Server connection restored!", "success");
       }
     }
-  }, 5000); // Check every 5 seconds
+  }, 5000);
 }
 
 export async function getUserData() {
@@ -156,13 +166,15 @@ export async function getUserData() {
     const response = await fetchWithAuth('/auth/get_user_data');
     
     if (!response.ok) {
+      let errorMessage = `Failed to fetch user data: ${response.status}`;
       if (response.status === 401) {
-        throw new Error('Authentication expired. Please log in again.');
+        errorMessage = 'Authentication expired. Please log in again.';
       } else if (response.status === 500) {
-        throw new Error('Server error. The server might have restarted.');
-      } else {
-        throw new Error(`Failed to fetch user data: ${response.status}`);
+        errorMessage = 'Server error. The server might have restarted.';
       }
+      
+      createToast(errorMessage, 'error');
+      throw new Error(errorMessage);
     }
     
     const userData = await response.json();

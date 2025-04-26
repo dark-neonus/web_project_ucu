@@ -1,14 +1,9 @@
-/**
- * Enhanced Event Filtering Module
- * Handles filter tabs, category dropdown, and search functionality for event listings
- */
-import {formatEventDates} from './post-format-code.js';
+import {formatEventDates} from './post-format-utils.js';
 
-// Keep track of current filters
 let currentFilters = {
   tab: 'new',
   category: null,
-  searchTerm: '' // Add search term to current filters
+  searchTerm: ''
 };
 
 /**
@@ -32,31 +27,24 @@ export function setupFilterTabs({
   const filterTabs = document.querySelectorAll(tabsSelector);
   const contentContainer = document.querySelector(containerSelector);
   
-  // Initialize the active filter
   currentFilters.tab = defaultFilter;
   
-  // Add click event listeners to all tabs
   filterTabs.forEach(tab => {
     tab.addEventListener('click', function() {
-      // Remove active class from all tabs
       filterTabs.forEach(t => t.classList.remove('active'));
       
-      // Add active class to clicked tab
       this.classList.add('active');
       
-      // Get filter type from data attribute
       const filterType = this.dataset.filter;
       
-      // Only fetch new data if the filter changed
       if (currentFilters.tab !== filterType) {
         currentFilters.tab = filterType;
         
-        // Call the provided fetch callback with the new filter type and current category
         if (typeof fetchCallback === 'function') {
           const params = { 
             ...additionalParams, 
             category: currentFilters.category,
-            searchTerm: currentFilters.searchTerm // Include search term in params
+            searchTerm: currentFilters.searchTerm
           };
           fetchCallback(filterType, contentContainer, params);
         }
@@ -64,17 +52,15 @@ export function setupFilterTabs({
     });
   });
   
-  // Initial load - find active tab or default to provided default
   const initialActiveTab = document.querySelector(`${tabsSelector}.active`);
   if (initialActiveTab) {
     currentFilters.tab = initialActiveTab.dataset.filter;
     fetchCallback(currentFilters.tab, contentContainer, { 
       ...additionalParams, 
       category: currentFilters.category,
-      searchTerm: currentFilters.searchTerm // Include search term in initial load
+      searchTerm: currentFilters.searchTerm
     });
   } else {
-    // If no active tab is found, set the first one as active
     const firstTab = document.querySelector(tabsSelector);
     if (firstTab) {
       firstTab.classList.add('active');
@@ -82,13 +68,13 @@ export function setupFilterTabs({
       fetchCallback(currentFilters.tab, contentContainer, { 
         ...additionalParams, 
         category: currentFilters.category,
-        searchTerm: currentFilters.searchTerm // Include search term in initial load
+        searchTerm: currentFilters.searchTerm
       });
     } else {
       fetchCallback(defaultFilter, contentContainer, { 
         ...additionalParams, 
         category: currentFilters.category,
-        searchTerm: currentFilters.searchTerm // Include search term in initial load
+        searchTerm: currentFilters.searchTerm
       });
     }
   }
@@ -105,7 +91,7 @@ export function setupFilterTabs({
       fetchCallback(currentFilters.tab, contentContainer, { 
         ...additionalParams, 
         category: currentFilters.category,
-        searchTerm: currentFilters.searchTerm // Include search term when refreshing
+        searchTerm: currentFilters.searchTerm
       });
     }
   };
@@ -133,20 +119,17 @@ export function setupCategoryFilter({
     return null;
   }
   
-  // Fetch available categories from the API
   fetchEventCategories(categoryDropdown);
   
-  // Add change event listener to dropdown
   categoryDropdown.addEventListener('change', function() {
     const selectedCategory = this.value === 'all' ? null : this.value;
     currentFilters.category = selectedCategory;
     
-    // Call the provided fetch callback with the current filter type and new category
     if (typeof fetchCallback === 'function') {
       fetchCallback(currentFilters.tab, contentContainer, { 
         ...additionalParams, 
         category: selectedCategory,
-        searchTerm: currentFilters.searchTerm // Include search term when category changes
+        searchTerm: currentFilters.searchTerm
       });
     }
   });
@@ -188,12 +171,10 @@ export function setupSearchInput({
     return null;
   }
   
-  // Function to perform search
   const performSearch = () => {
     const searchTerm = searchInput.value.trim();
     currentFilters.searchTerm = searchTerm;
     
-    // Call the provided fetch callback with the current filters
     if (typeof fetchCallback === 'function') {
       const params = { 
         ...additionalParams, 
@@ -204,21 +185,17 @@ export function setupSearchInput({
     }
   };
   
-  // Add event listener for search button click
   if (searchButton) {
     searchButton.addEventListener('click', performSearch);
   }
   
-  // Add event listener for Enter key press
   searchInput.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
       performSearch();
     }
   });
   
-  // Add event listener for input clearing (x button)
   searchInput.addEventListener('search', function() {
-    // This event triggers when the clear button is clicked in supported browsers
     performSearch();
   });
   
@@ -254,15 +231,12 @@ function fetchEventCategories(dropdownElement) {
       return response.json();
     })
     .then(categories => {
-      // Store current selection
       const currentSelection = dropdownElement.value;
       
-      // Clear existing options (except the first "All" option)
       while (dropdownElement.options.length > 1) {
         dropdownElement.remove(1);
       }
       
-      // Add each category as an option
       categories.forEach(category => {
         const option = document.createElement('option');
         option.value = category;
@@ -270,7 +244,6 @@ function fetchEventCategories(dropdownElement) {
         dropdownElement.appendChild(option);
       });
       
-      // Restore previous selection if it exists
       if (currentSelection && dropdownElement.querySelector(`option[value="${currentSelection}"]`)) {
         dropdownElement.value = currentSelection;
       }
@@ -314,22 +287,17 @@ export function createEmptyState(message = 'No content available') {
  * @param {Object} params - Additional parameters (e.g., user_id, category, searchTerm)
  */
 export function fetchFilteredEvents(filterType, postsContainer, params = {}) {
-  // Show loading state
   postsContainer.innerHTML = createLoadingIndicator(params.searchTerm ? 'Searching events...' : 'Loading events...');
   
-  // Check if we're on a user events page
   const isUserEvents = params.isUserEvents || false;
   const userId = params.userId || null;
   const category = params.category || null;
   const searchTerm = params.searchTerm || null;
   
-  // Construct the API endpoint based on filter type and page context
   let endpoint = isUserEvents && userId ? `/events/user_events_api/${userId}` : '/events/api';
   
-  // Build query parameters
   const queryParams = new URLSearchParams();
   
-  // Add sort parameters based on filter type
   switch(filterType) {
     case 'new':
       queryParams.append('sort', 'date_created');
@@ -347,20 +315,16 @@ export function fetchFilteredEvents(filterType, postsContainer, params = {}) {
       queryParams.append('order', 'desc');
   }
   
-  // Add category filter if specified
   if (category) {
     queryParams.append('category', category);
   }
   
-  // Add search term if specified
   if (searchTerm) {
     queryParams.append('search', searchTerm);
   }
   
-  // Append query parameters to endpoint
   endpoint += `?${queryParams.toString()}`;
   
-  // Fetch the filtered events
   fetch(endpoint, {
     headers: {
       'Accept': 'application/json'
@@ -395,7 +359,6 @@ export function fetchFilteredEvents(filterType, postsContainer, params = {}) {
 export function updateEventsDisplay(events, postsContainer, searchTerm = null) {
   let containerHTML = '';
   
-  // Show search results info if search was performed
   if (searchTerm) {
     const resultCount = events.length;
     containerHTML += `
@@ -415,10 +378,8 @@ export function updateEventsDisplay(events, postsContainer, searchTerm = null) {
     return;
   }
   
-  // Build HTML for each event
   let eventsHTML = '';
   events.forEach(event => {
-    // Format date if available
     const formattedDate = event.date_scheduled 
       ? new Date(event.date_scheduled).toLocaleDateString('en-US', {
           weekday: 'long',
@@ -472,11 +433,9 @@ export function updateEventsDisplay(events, postsContainer, searchTerm = null) {
     `;
   });
   
-  // Update the container
   containerHTML += eventsHTML;
   postsContainer.innerHTML = containerHTML;
   
-  // Re-apply event listeners to the new elements if needed
   formatEventDates();
 }
 
@@ -485,23 +444,19 @@ export function updateEventsDisplay(events, postsContainer, searchTerm = null) {
  * @return {Object} Collection of filter controllers (tabs, category, search)
  */
 export function initializeEventFilters() {
-  // Check if we're on a user events page by looking for a user-specific identifier in the URL
   const urlPath = window.location.pathname;
   const isUserEvents = urlPath.includes('/user_events/');
   let userId = null;
   
   if (isUserEvents) {
-    // Extract user ID from URL path
     const matches = urlPath.match(/\/user_events\/([^\/]+)/);
     if (matches && matches[1]) {
       userId = matches[1];
     }
   }
   
-  // Common parameters for all filters
   const commonParams = { isUserEvents, userId };
   
-  // Set up filter tabs
   const tabFilters = setupFilterTabs({
     tabsSelector: '.filter-tab',
     containerSelector: '.posts-container',
@@ -511,7 +466,6 @@ export function initializeEventFilters() {
     additionalParams: commonParams
   });
   
-  // Set up category filter
   const categoryFilter = setupCategoryFilter({
     dropdownSelector: '#category-filter',
     containerSelector: '.posts-container',
@@ -519,7 +473,6 @@ export function initializeEventFilters() {
     additionalParams: commonParams
   });
   
-  // Set up search input if it exists on the page
   let searchFilter = null;
   if (document.querySelector('#search-input')) {
     searchFilter = setupSearchInput({
@@ -530,7 +483,6 @@ export function initializeEventFilters() {
       additionalParams: commonParams
     });
     
-    // Check URL for search parameter and apply it
     const urlParams = new URLSearchParams(window.location.search);
     const searchParam = urlParams.get('search');
     if (searchParam) {

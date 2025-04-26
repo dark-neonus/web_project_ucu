@@ -1,27 +1,20 @@
-// Update the existing file event-view-code.js
-
-import {formatEventDates} from './post-format-code.js';
+import {formatEventDates} from './utils/post-format-utils.js';
 import {adjustUserEventsLink} from './user-events-link.js';
-import {getAuthToken} from './auth.js';
-import {loadEventComments} from './event-comments.js';
+import {getAuthToken} from './utils/auth-utils.js';
 
 document.addEventListener('DOMContentLoaded', function() {
-  // Set up event listeners for the page
   formatEventDates();
   setupEventListeners();
   adjustUserEventsLink();
   checkRegistrationStatus();
-  
-  // Don't set up comment form listeners here since it's handled in event-comments.js
 });
 
-// New function to check registration status
 async function checkRegistrationStatus() {
   const eventId = getEventIdFromUrl();
   if (!eventId) return;
   
   const token = getAuthToken();
-  if (!token) return; // User is not logged in
+  if (!token) return;
   
   try {
     const response = await fetch(`/events/register/${eventId}/status`, {
@@ -40,7 +33,6 @@ async function checkRegistrationStatus() {
   }
 }
 
-// Update the UI to reflect registration status
 function updateRegistrationUI(isRegistered) {
   const joinButton = document.getElementById('event-join-button');
   
@@ -57,7 +49,6 @@ function updateRegistrationUI(isRegistered) {
   }
 }
 
-// Function to toggle registration status
 async function toggleRegistration(eventId, token) {
   const joinButton = document.getElementById('event-join-button');
   const isRegistered = joinButton.classList.contains('registered');
@@ -72,16 +63,6 @@ async function toggleRegistration(eventId, token) {
     });
     
     if (response.ok) {
-      // If it's a new registration
-      if (!isRegistered) {
-        const data = await response.json();
-        console.log('Registration successful:', data);
-      } else {
-        // If it's a cancellation
-        console.log('Registration cancelled');
-      }
-      
-      // Update the UI
       updateRegistrationUI(!isRegistered);
     } else {
       const errorData = await response.json();
@@ -92,14 +73,12 @@ async function toggleRegistration(eventId, token) {
   }
 }
 
-// Extract the event ID from the current URL
 function getEventIdFromUrl() {
   const pathParts = window.location.pathname.split('/');
   const eventId = pathParts[pathParts.length - 1];
   return eventId;
 }
 
-// Update the UI to reflect the current vote count and user's vote status
 function updateVoteUI(voteCount, hasVoted) {
   const voteCountElement = document.querySelector('.vote-stat span:last-child');
   const voteButton = document.getElementById('event-vote-button');
@@ -146,7 +125,6 @@ async function toggleVote(eventId, token) {
 }
 
 function setupEventListeners() {
-  // Handle vote button click - using ID selector
   const voteButton = document.getElementById('event-vote-button');
   if (voteButton) {
     voteButton.addEventListener('click', async function() {
@@ -158,11 +136,9 @@ function setupEventListeners() {
       const eventId = getEventIdFromUrl();
       if (!eventId) return;
       
-      // Use the toggleVote function to handle both voting and unvoting
       await toggleVote(eventId, token);
     });
   }
-  // Handle join event button - updated to use the registration API
   const joinEventButton = document.getElementById('event-join-button');
   if (joinEventButton) {
     joinEventButton.addEventListener('click', async function() {
@@ -174,7 +150,6 @@ function setupEventListeners() {
       const eventId = getEventIdFromUrl();
       if (!eventId) return;
       
-      // Use the toggleRegistration function
       await toggleRegistration(eventId, token);
     });
   }

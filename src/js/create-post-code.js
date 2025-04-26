@@ -1,16 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const questionForm = document.querySelector('.question-form');
   const formTitle = document.querySelector('.form-input');
   const formContent = document.querySelector('.form-textarea');
   const formCategory = document.querySelector('.form-select');
   const formSubmitButton = document.querySelector('.button-primary');
   
-  // Submit form handler
   if (formSubmitButton) {
     formSubmitButton.addEventListener('click', function(e) {
       e.preventDefault();
       
-      // Validate form fields
       if (!formTitle.value.trim()) {
         alert('Please enter a title');
         return;
@@ -26,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
       
-      // Create question object
       const newQuestion = {
         title: formTitle.value.trim(),
         content: formContent.value.trim(),
@@ -47,18 +43,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Function to save a new question to localStorage
   function saveNewQuestion(question) {
     let questions = JSON.parse(localStorage.getItem('forumQuestions')) || [];
     
-    // Add new question
     questions.unshift(question);
     
-    // Save back to localStorage
     localStorage.setItem('forumQuestions', JSON.stringify(questions));
   }
   
-  // Add image button functionality
   const addImageButton = document.querySelector('.button-secondary');
   if (addImageButton) {
     addImageButton.addEventListener('click', function() {

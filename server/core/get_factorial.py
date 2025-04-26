@@ -45,7 +45,7 @@ def get_max_factorial_idx():
         print(f"Error reading factorial file: {e}")
         return -1
 
-def get_factorial(n):
+def __get_factorial(n):
     """
     Get the factorial of n from the pre-calculated file
     without loading the entire file into memory.
@@ -87,7 +87,7 @@ def get_factorial(n):
         print(f"Error reading factorial {n}: {e}")
         return None
 
-def get_factorial_by_line_num(line_num):
+def __get_factorial_by_line_num(line_num):
     """
     Get a factorial value by its line number in the file.
     Useful for random access without knowing the index.
@@ -125,7 +125,7 @@ def get_factorial_by_line_num(line_num):
         print(f"Error reading factorial at line {line_num}: {e}")
         return None, None
 
-def binary_search_factorial(n):
+def __binary_search_factorial(n):
     """
     Use binary search to efficiently find a factorial value without
     loading the entire file or scanning linearly.
@@ -168,15 +168,36 @@ def binary_search_factorial(n):
         print(f"Error during binary search for factorial {n}: {e}")
         return None
 
+def get_factorial(n):
+    """
+    Get the factorial of n, using binary search for efficiency.
+    
+    Args:
+        n (int): The factorial to retrieve (n!)
+    
+    Returns:
+        int: The factorial value, or None if not found
+    """
+    if n < 0:
+        return None  # Factorial is not defined for negative numbers
+
+    # Use binary search to find the factorial
+    if n == get_max_factorial_idx() + 1:
+        # Calculating aspect of solution
+        return __get_factorial(n - 1) * n
+    if n > get_max_factorial_idx():
+        return None
+    return __binary_search_factorial(n)
+
 if __name__ == "__main__":
     # Example usage
     max_idx = get_max_factorial_idx()
     
     if max_idx >= 5000:
-        print(f"5000! = {binary_search_factorial(5000)}")
+        print(f"5000! = {__binary_search_factorial(5000)}")
     
     if max_idx >= 4999:
-        print(f"4999! = {get_factorial(4999)}")
+        print(f"4999! = {__get_factorial(4999)}")
 
     print(f"Maximum calculated factorial: {max_idx}!")
 

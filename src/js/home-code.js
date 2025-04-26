@@ -1,6 +1,24 @@
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.querySelector('.search-input');
+    const factorialInput = document.getElementById('factorial-number');
+    const calculateButton = document.getElementById('calculate-factorial');
+    const factorialResult = document.getElementById('factorial-result');
+    const factorialError = document.getElementById('factorial-error');
     
+    let maxFactorial = -1;
+
+    // Fetch maximum available factorial on page load
+    async function fetchMaxFactorial() {
+      try {
+        const response = await fetch('/api/max_factorial');
+        const data = await response.json();
+        maxFactorial = data.max_factorial;
+        factorialInput.setAttribute('max', maxFactorial + 1);
+      } catch (error) {
+        console.error('Error fetching maximum factorial:', error);
+      }
+    }
+
     function setupSearch() {
       if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
@@ -25,7 +43,62 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       });
     }
+
+    async function calculateFactorial() {
+      const number = parseInt(factorialInput.value);
+      factorialError.textContent = '';
+      factorialResult.style.display = 'none';
+      
+      if (isNaN(number)) {
+        factorialError.textContent = 'Please enter a valid number';
+        return;
+      }
+
+      if (number < 0) {
+        factorialError.textContent = 'Factorial is not defined for negative numbers';
+        return;
+      }
+
+      if (maxFactorial >= 0 && number > maxFactorial + 1) {
+        factorialError.textContent = `Maximum available factorial is ${maxFactorial + 1}`;
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/factorial/${number}`);
+        
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.result) {
+          factorialResult.textContent = `${number}! = ${data.result}`;
+          factorialResult.style.display = 'block';
+        } else {
+          factorialError.textContent = data.error || 'Failed to calculate factorial';
+        }
+      } catch (error) {
+        factorialError.textContent = `Error: ${error.message}`;
+        console.error('Error calculating factorial:', error);
+      }
+    }
+
+    // Setup factorial calculator
+    if (calculateButton) {
+      calculateButton.addEventListener('click', calculateFactorial);
+    }
+
+    if (factorialInput) {
+      factorialInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          calculateFactorial();
+        }
+      });
+    }
     
+    fetchMaxFactorial();
     setupSearch();
     setupFeatureCards();
-  });
+});

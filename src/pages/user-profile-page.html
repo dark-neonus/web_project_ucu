@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tribuna - User Profile</title>
   <link rel="stylesheet" href="/src/css/main-style.css">
-  <link rel="stylesheet" href="/src/css/profile-style.css">
-
+  <link rel="stylesheet" href="/src/css/user-profile-style.css">
 </head>
 <body>
   <!-- Header -->
@@ -38,7 +37,7 @@
     <aside class="profile-sidebar">
       <div class="sidebar-user">
         <div class="sidebar-avatar"></div>
-        <h3 class="sidebar-username">Username</h3>
+        <h3 class="sidebar-username">{{ user.first_name }} {{ user.last_name }}</h3>
         <p class="user-status">Member since Jan 2025</p>
       </div>
       
@@ -51,7 +50,12 @@
           <span class="icon icon-activity"></span>
           <span>Activity</span>
         </a>
-        <a href="settings.html" class="sidebar-nav-item">
+        <!-- New nav link for user's events -->
+        <a href="/events/user_events/{{ user.id }}" class="sidebar-nav-item">
+          <span class="icon icon-calendar"></span>
+          <span>Events</span>
+        </a>
+        <a href="/auth/settings" class="sidebar-nav-item">
           <span class="icon icon-settings"></span>
           <span>Settings</span>
         </a>
@@ -70,22 +74,8 @@
             </div>
           </div>
           <div class="profile-header-details">
-            <h1 class="profile-name">John Doe</h1>
-            <p class="profile-bio">Software developer and forum enthusiast</p>
-            <div class="profile-stats">
-              <div class="stat">
-                <span class="stat-value">247</span>
-                <span class="stat-label">Posts</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">85</span>
-                <span class="stat-label">Topics</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">2.1k</span>
-                <span class="stat-label">Likes</span>
-              </div>
-            </div>
+            <h1 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h1>
+            <p class="profile-bio">{{ user.bio if user.bio else "No bio available" }}</p>
           </div>
         </div>
       </section>
@@ -104,8 +94,7 @@
             </div>
             <div class="card-body">
               <p class="profile-about">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum in fermentum turpis. 
-                Proin auctor magna sit amet ligula finibus, in condimentum sapien sodales.
+                {{ user.about if user.about else "No information available." }}
               </p>
             </div>
           </div>
@@ -119,16 +108,20 @@
               <ul class="profile-details-list">
                 <li>
                   <span class="detail-label">Email:</span>
-                  <span class="detail-value">john.doe@example.com</span>
+                  <span class="detail-value">{{ user.email }}</span>
                 </li>
+                {% if user.website %}
                 <li>
                   <span class="detail-label">Website:</span>
-                  <span class="detail-value">johndoe.dev</span>
+                  <span class="detail-value">{{ user.website }}</span>
                 </li>
+                {% endif %}
+                {% if user.location %}
                 <li>
                   <span class="detail-label">Location:</span>
-                  <span class="detail-value">New York, USA</span>
+                  <span class="detail-value">{{ user.location }}</span>
                 </li>
+                {% endif %}
               </ul>
             </div>
           </div>
@@ -142,18 +135,40 @@
         </div>
         
         <div class="activity-tabs">
-          <button class="tab-button active" data-tab="posts">Recent Posts</button>
-          <button class="tab-button" data-tab="viewed">Recent Events</button>
+          <button class="tab-button active" data-tab="posts">Recent Events</button>
+          <button class="tab-button" data-tab="viewed">Recent Questions</button>
         </div>
         
         <div class="tab-content active" id="posts-tab">
-           <!-- Content -->
-          <button class="btn btn-load-more">Load More</button>
+          {% if events %}
+            <div class="activity-list">
+              {% for event in events[:3] %}  <!-- Limit to 5 events -->
+                <div class="activity-item">
+                  <div class="activity-header">
+                    <h4 class="activity-title">{{ event.title }}</h4>
+                    <span class="event-date">{{ event.date_created }}</span>
+                  </div>
+                  <p class="activity-excerpt">{{ event.description[:100] }}{% if event.description|length > 100 %}...{% endif %}</p>
+                  <a href="/events/view_event/{{ event.id }}" class="activity-link">View post</a>
+                </div>
+              {% endfor %}
+            </div>
+            {% if events|length > 3 %}  <!-- If there are more than 3 events -->
+              <div class="view-all-container">
+                <a href="/events/user_events/{{ user.id }}" class="btn btn-load-more">View All Events</a>
+              </div>
+            {% endif %}
+          {% else %}
+            <p class="no-data-message">No recent events found.</p>
+          {% endif %}
         </div>
       </section>
     </main>
   </div>
-  <script src="/src/js/auth.js"></script>
-  <script src="/src/js/header.js"></script>
+  <script type="module" src="/src/js/header.js"></script>
+  <script type="module" src="/src/js/user-profile-code.js"></script>
+  {% if current_user_id == user.id %}
+  <script type="module" src="/src/js/profile-edit.js"></script>
+  {% endif %}
 </body>
 </html>

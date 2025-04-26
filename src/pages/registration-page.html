@@ -17,26 +17,32 @@
 
       <form action="/auth/register" method="POST">
         <div class="form-group">
-          <input type="text" class="form-input" id="first_name" placeholder=" ">
-          <label for="first_name" class="input-label">first name</label>
+          <input type="text" class="form-input" id="first_name" placeholder="first name">
         </div>
 
         <div class="form-group">
-          <input type="text" class="form-input" id="last_name" placeholder=" ">
-          <label for="last_name" class="input-label">last name</label>
+          <input type="text" class="form-input" id="last_name" placeholder="last name">
         </div>
         
         <div class="form-group">
-          <input type="email" class="form-input" id="email" placeholder=" ">
-          <label for="email" class="input-label">email address</label>
+          <input type="email" class="form-input" id="email" placeholder="email address">
         </div>
         
         <div class="form-group">
-          <input type="password" class="form-input" id="password" placeholder=" ">
-          <label for="password" class="input-label">password</label>
+          <input type="password" class="form-input" id="password" placeholder="password">
           <button type="button" class="toggle-password">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>  
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+
+        <div class="form-group">
+          <input type="password" class="form-input" id="confirm_password" placeholder="confirm password">
+          <button type="button" class="toggle-password">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>  
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
           </button>
@@ -55,6 +61,6 @@
       </div>
     </div>
   </div>
-  <script src="/src/js/registration-code.js"></script>
+  <script type = "module" src="/src/js/registration-code.js"></script>
 </body>
 </html>

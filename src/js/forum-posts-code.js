@@ -1,15 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Get references to key elements
   const postsContainer = document.querySelector('.posts-container');
   const filterTabs = document.querySelectorAll('.filter-tab');
   
-  // Current tag filter
   let currentTagFilter = null;
   
-  // Function to load questions including those from localStorage
   async function fetchForumData() {
     try {
-      // Try to fetch from server first
       let serverData = { questions: [] };
       try {
         const response = await fetch('/src/json/data.json');
@@ -17,13 +13,11 @@ document.addEventListener('DOMContentLoaded', function() {
           serverData = await response.json();
         }
       } catch (error) {
-        console.log('Could not fetch from server, using local data only');
+        console.error('Could not fetch from server, using local data only');
       }
       
-      // Get locally stored questions
       const localQuestions = JSON.parse(localStorage.getItem('forumQuestions')) || [];
       
-      // Combine server and local data
       return {
         questions: [...localQuestions, ...serverData.questions]
       };
@@ -33,9 +27,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // Function to render posts based on filters
   async function renderPosts() {
-    if (!postsContainer) return; // Exit if not on the forum page
+    if (!postsContainer) return;
     
     postsContainer.innerHTML = '<div class="loading-state">Loading...</div>';
     
@@ -43,15 +36,12 @@ document.addEventListener('DOMContentLoaded', function() {
       const forumData = await fetchForumData();
       postsContainer.innerHTML = '';
       
-      // Get and filter data
       let posts = forumData.questions;
       
-      // Apply tag filter if set
       if (currentTagFilter) {
         posts = posts.filter(post => post.tag === currentTagFilter);
       }
       
-      // Apply sorting based on active filter tab
       const activeFilterTab = document.querySelector('.filter-tab.active');
       const filterType = activeFilterTab?.querySelector('span:last-child')?.textContent.toLowerCase() || 
                           activeFilterTab?.textContent.trim().toLowerCase();
@@ -61,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
       } else if (filterType === 'closed') {
         posts = posts.filter(post => post.closed);
       } else {
-        // Default 'new' sorting
         posts = posts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       }
       
@@ -70,12 +59,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
       
-      // Create and append post elements
       posts.forEach(post => {
         const postElement = document.createElement('div');
         postElement.className = 'post';
         
-        // Post content
         let postContent = `
           <div class="post-header">
             <div class="user-info">
@@ -122,7 +109,6 @@ document.addEventListener('DOMContentLoaded', function() {
         postsContainer.appendChild(postElement);
       });
       
-      // Add event listeners to tag elements
       document.querySelectorAll('.post-tag').forEach(tagElement => {
         tagElement.addEventListener('click', function() {
           const tag = this.getAttribute('data-tag');
@@ -137,20 +123,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Simplified function to make posts clickable to view details
   function makePostsClickable() {
     const posts = document.querySelectorAll('.post');
     
     posts.forEach(post => {
       post.addEventListener('click', function(e) {
-        // Don't navigate if clicking on tag, buttons, or stats
         if (e.target.closest('.post-tag') || 
             e.target.closest('button') ||
             e.target.closest('.post-stats')) {
           return;
         }
         
-        // Get minimal required post data for navigation
         const postData = {
           title: post.querySelector('.post-title').textContent,
           content: post.querySelector('.post-excerpt')?.textContent || '',
@@ -158,22 +141,17 @@ document.addEventListener('DOMContentLoaded', function() {
           tag: post.querySelector('.post-tag').textContent
         };
         
-        // Store minimal post data in localStorage
         localStorage.setItem('currentPost', JSON.stringify(postData));
         
-        // Navigate to post details page (you would add the actual navigation here)
-        // window.location.href = `/forum/post/${encodeURIComponent(postData.title)}`;
       });
     });
   }
   
-  // Function to filter posts by tag
   function filterPostsByTag(tag) {
-    if (!postsContainer) return; // Exit if not on the forum page
+    if (!postsContainer) return;
     
     currentTagFilter = tag;
     
-    // Show a heading with current tag filter
     const tagHeading = document.createElement('div');
     tagHeading.className = 'tag-filter-heading';
     tagHeading.innerHTML = `
@@ -181,39 +159,33 @@ document.addEventListener('DOMContentLoaded', function() {
       <button class="clear-tag-filter">Clear filter</button>
     `;
     
-    // Remove existing tag heading if any
     const existingHeading = document.querySelector('.tag-filter-heading');
     if (existingHeading) {
       existingHeading.remove();
     }
     
-    // Insert heading before posts container
     postsContainer.parentNode.insertBefore(tagHeading, postsContainer);
     
-    // Add event listener to clear tag filter button
     document.querySelector('.clear-tag-filter').addEventListener('click', function() {
       currentTagFilter = null;
       tagHeading.remove();
       renderPosts();
     });
     
-    // Render filtered posts
     renderPosts();
   }
   
-  // Handle filter tab clicks
   if (filterTabs.length > 0) {
     filterTabs.forEach(tab => {
       tab.addEventListener('click', function() {
         filterTabs.forEach(t => t.classList.remove('active'));
         this.classList.add('active');
         
-        renderPosts(); // Re-render with new filter
+        renderPosts();
       });
     });
   }
   
-  // Initial render
   if (postsContainer) {
     renderPosts();
   }

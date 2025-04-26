@@ -54,9 +54,9 @@
       </div>
       <div class="menu-section">
         <p class="menu-title">PERSONAL NAVIGATOR</p>
-        <div class="menu-item">
+        <div class="menu-item" id = "user-events-link">
           <span class="menu-icon">◯</span>
-          <span>Your questions</span>
+          <span>Your events</span>
         </div>
       </div>
   </aside>
@@ -76,8 +76,8 @@
         
         <div class="event-form-fields">
           <div class="form-group">
-            <label for="event-date">Event Date</label>
-            <input type="date" id="event-date" class="form-input event-date-input" required>
+            <label for="event-date">Event Date & Time</label>
+            <input type="datetime-local" id="event-date" class="form-input event-date-input" required>
           </div>
           <div class="form-group">
             <label for="event-location">Event Location</label>
@@ -86,12 +86,9 @@
         </div>
        
         <div class="form-group">
-          <select class="form-select">
+          <select id="event-category" class="form-select">
             <option value="" disabled selected>Choose category</option>
-            <option value="society">Society</option>
-            <option value="health">Health</option>
-            <option value="employment">Employment</option>
-            <option value="support">Support</option>
+            <!-- Options will be dynamically populated -->
           </select>
         </div>
        
@@ -117,7 +114,7 @@
     </main>
   </div>
   <!-- Script -->
-  <script src="/src/js/header.js"></script>
+  <script type = "module" src="/src/js/header.js"></script>
   <script type = "module" src="/src/js/create-event-code.js"></script>
 </body>
 </html>

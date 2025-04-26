@@ -54,7 +54,7 @@
       </div>
       <div class="menu-section">
         <p class="menu-title">PERSONAL NAVIGATOR</p>
-        <div class="menu-item">
+        <div class="menu-item" id = "user-events-link">
           <span class="menu-icon">◯</span>
           <span>Your events</span>
         </div>
@@ -69,15 +69,15 @@
     <!-- Main Content Area -->
     <main class="main-content event-view">
       <!-- Event Post -->
-      <div class="question-container" data-content-type="events">
+      <div class="post-container" data-content-type="events">
         {% if event %}
-          <div class="post-header">
-            <div class="user-info">
+          <div onclick="window.location.href = '/auth/profile/{{ event.author_id}}'" class="post-header">
+            <div class="user-info" , id = "user-info">
               <div class="avatar">
                 <img src="https://via.placeholder.com/40" alt="User avatar">
               </div>
               <div class="user-meta">
-                <p class="username">Author ID: {{ event.author_id }}</p>
+                <p class="username" , id = "username">{{ event.author_username }}</p>
                 <p class="time">{{ event.date_created }}</p>
               </div>
             </div>
@@ -86,6 +86,11 @@
             </button>
           </div>
           <h2 class="event-title">{{ event.title }}</h2>
+          
+          {% if event.image_path %}
+            <img src="/{{ event.image_path }}" alt="Event image" class="event-image">
+          {% endif %}
+
           <div class="event-content">
             <p>{{ event.description }}</p>
           </div>
@@ -109,24 +114,20 @@
             <span class="post-tag">{{ event.category }}</span>
             <div class="post-stats">
               <div class="stat">
-                <span class="icon icon-eye"></span>
-                <span>0</span>
-              </div>
-              <div class="stat">
                 <span class="icon icon-message"></span>
-                <span>0</span>
+                <span>{{ event.comment_count }}</span>
               </div>
               <div class="stat vote-stat">
                 <span class="icon icon-arrow-up"></span>
-                <span>0</span>
+                <span>{{ event.vote_count }}</span>
               </div>
             </div>
           </div>
           <div class="event-actions">
-            <button class="vote-button">
+            <button class="vote-button" id = "event-vote-button">
               <span>Vote</span>
             </button>
-            <button class="join-event-button">
+            <button class="join-event-button" id = "event-join-button">
               <span class="icon icon-calendar"></span>
               <span>Join Event</span>
             </button>
@@ -137,27 +138,31 @@
       </div>
       
       <!-- Comments Section -->
-      <div class="suggestions-section">
+      <div class="comments-section">
         <h2 class="section-title">Comments</h2>
         
-        <div class="suggestion-form">
-          <textarea class="suggestion-input" placeholder="Leave your comment about this event"></textarea>
-          <div class="suggestion-buttons">
-            <button class="suggest-button">
+        <div class="comment-form">
+          <textarea id="comment-input" class="comment-input" placeholder="Leave your comment about this event"></textarea>
+          <div class="comment-buttons">
+            <button id="comment-submit-button" class="comment-button">
               <span>Comment</span>
             </button>
-            <button class="cancel-button">
+            <button id="comment-cancel-button" class="comment-button cancel-button">
               <span>Cancel</span>
             </button>
           </div>
+        </div>
+        
+        <div id="comments-container" class="comments-container">
+          <!-- Comments will be loaded here dynamically -->
+          <div class="loading-comments">Loading comments...</div>
         </div>
       </div>
     </main>
   </div>
 
   <!-- Script -->
-  <script src="/src/js/auth.js"></script>
-  <script src="/src/js/header.js"></script>
-  <script src="/src/js/event-view-code.js"></script>
+  <script type = "module" src="/src/js/header.js"></script>
+  <script type = "module" src="/src/js/event-view-code.js"></script>
 </body>
 </html>

@@ -1,5 +1,7 @@
+import { createToast } from './utils/toast-utils.js';
+import { showInputError, clearFormErrors, isValidEmail, setSubmitButtonState } from './utils/validation-utils.js';
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Toggle password visibility
   document.querySelectorAll('.toggle-password').forEach(button => {
     button.addEventListener('click', function() {
       const input = this.parentElement.querySelector('.form-input');
@@ -14,44 +16,60 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
-  
-  // Add animation to form inputs
-  document.querySelectorAll('.form-input').forEach((input, index) => {
-    input.style.cssText = 'opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease';
-    setTimeout(() => input.style.cssText = 'opacity: 1; transform: translateY(0); transition: opacity 0.3s ease, transform 0.3s ease', 200 + (index * 100));
-  });
-  
-  // Form validation and submission
+
   const form = document.querySelector('form');
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      clearFormErrors();
 
-      const email = document.getElementById('email').value;
+      let isValid = true;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       
-      if (!email || !password) {
-        alert('Please fill in all fields');
+      if (!email) {
+        showInputError(document.getElementById('email'), 'Email is required');
+        isValid = false;
+      } else if (!isValidEmail(email)) {
+        showInputError(document.getElementById('email'), 'Please enter a valid email address');
+        isValid = false;
+      }
+      
+      if (!password) {
+        showInputError(document.getElementById('password'), 'Password is required');
+        isValid = false;
+      }
+
+      if (!isValid) {
+        document.querySelector('.form-input-error')?.focus();
         return;
       }
 
       try {
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalText = setSubmitButtonState(submitButton, true);
+
         const response = await fetch('/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
         });
 
-        const data = await response.json();
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalText;
         
         if (response.ok) {
+          const data = await response.json();
+          createToast('Login successful! Redirecting...', 'success');
           localStorage.setItem('access_token', data.access_token);
-          window.location.href = '/';
+          setTimeout(() => window.location.href = '/', 1500);
         } else {
-          alert(`Error: ${data.detail}`);
+          const errorData = await response.json();
+          createToast(`Login failed: ${errorData.detail || 'Invalid credentials'}`, 'error');
         }
       } catch (error) {
-        alert('An error occurred. Please try again.');
+        console.error('Error:', error);
+        createToast('Connection error. Please check your internet connection and try again.', 'error');
       }
     });
   }

@@ -174,3 +174,7 @@ cython_debug/
 database.db
 
 .vscode
+
+static/
+
+.VSCodeCounter

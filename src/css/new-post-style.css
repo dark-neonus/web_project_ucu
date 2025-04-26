@@ -92,7 +92,84 @@
   .button-secondary:hover {
     background-color: var(--bg-light-hover);
   }
+.upload-button-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.image-upload-container {
+  margin-top: 10px;
+  width: 100%;
+}
+
+@media screen and (max-width: 768px) {
+  .form-actions {
+    flex-direction: column;
+  }
   
+  .form-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .form-button svg {
+    display: none;
+  }
+  
+  .form-button {
+    font-size: var(--font-sm);
+    padding: var(--space-sm) var(--space-md);
+  }
+  
+  .event-form-fields {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .upload-controls-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .image-preview {
+    margin-top: 10px;
+  }
+  
+  .form-title {
+    font-size: var(--font-xl);
+  }
+}
+
+.button-secondary.active {
+  background-color: var(--bg-light-hover);
+}
+
+.preview-container {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+}
+
+.form-input-error {
+  border-color: var(--error-color) !important;
+}
+
+.form-error {
+  color: var(--error-color);
+  font-size: var(--font-sm);
+  margin-top: 4px;
+  display: block;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.shake-animation {
+  animation: shake 0.5s;
+}
 
   @media screen and (max-width: 720px) {
     .main-container {
@@ -104,3 +181,5 @@
       padding: var(--space-sm);
     }
   }
+
+  

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tribuna Forum - Events</title>
-  <link rel="stylesheet" href="/src/css/main-style.css">
+  <link rel="stylesheet" href="/src/css/main-style.css">  
   <link rel="stylesheet" href="/src/css/forum-style.css">
 </head>
 <body>
@@ -37,7 +37,7 @@
     <aside class="left-sidebar">
       <div class="search-container">
         <span class="icon icon-search search-icon"></span>
-        <input type="text" class="search-input" placeholder="Search">
+        <input type="text" class="search-input" id="search-input" placeholder="Search">
       </div>
       
       <div class="menu-section">
@@ -53,7 +53,7 @@
       </div>
       <div class="menu-section">
         <p class="menu-title">PERSONAL NAVIGATOR</p>
-        <div class="menu-item">
+        <div class="menu-item" id = "user-events-link" href="#">
           <span class="menu-icon">◯</span>
           <span>Your events</span>
         </div>
@@ -68,17 +68,23 @@
     <!-- Main Content Area -->
     <main class="main-content">
       <div class="filter-tabs">
-        <button class="filter-tab active">
+        <button class="filter-tab active" data-filter="new">
           <span class="icon icon-new"></span>
           <span>New</span>
         </button>
-        <button class="filter-tab">
+        <button class="filter-tab" data-filter="top">
           <span class="icon icon-arrow-up"></span>
           <span>Top</span>
         </button>
-        <button class="filter-tab">
+        <button class="filter-tab" data-filter="closed">
           <span>Closed</span>
         </button>
+        <div class="category-filter-container">
+          <select id="category-filter" class="category-dropdown">
+            <option value="all">All Categories</option>
+            <!-- Categories will be loaded dynamically -->
+          </select>
+        </div>
       </div>
 
       <div class="posts-container" data-content-type="events">
@@ -91,45 +97,41 @@
                     <img src="https://via.placeholder.com/40" alt="User avatar">
                   </div>
                   <div class="user-meta">
-                    <p class="username">{{ event.username }}</p>
-                    <p class="time">{{ event.time_ago }}</p>
+                    <p class="username">{{ event.author_username }}</p>
+                    <p class="time">{{ event.date_created }}</p>
                   </div>
                 </div>
                 <button>
                   <span class="icon icon-more"></span>
                 </button>
               </div>
+              {% if event.image_path %}
+                <img src="/{{ event.image_path }}" alt="Event image" class="post-image">
+              {% endif %}
               <h3 class="post-title">{{ event.title }}</h3>
-              
-              {% if event.content or event.excerpt %}
-                <p class="post-excerpt">{{ event.content or event.excerpt }}</p>
+              {% if event.description %}
+                <p class="post-excerpt">{{ event.description }}</p>
               {% endif %}
               
-              {% if event.date or event.location %}
-                <div class="event-details">
-                  {% if event.date %}
-                    <div class="event-date"><span class="icon icon-calendar"></span> {{ event.date }}</div>
-                  {% endif %}
-                  {% if event.location %}
-                    <div class="event-location"><span class="icon icon-location"></span> {{ event.location }}</div>
-                  {% endif %}
-                </div>
-              {% endif %}
+              <div class="event-details">
+                {% if event.date_scheduled %}
+                  <div class="event-date"><span class="icon icon-calendar"></span> {{ event.date_scheduled}}</div>
+                {% endif %}
+                {% if event.location %}
+                  <div class="event-location"><span class="icon icon-location"></span> {{ event.location }}</div>
+                {% endif %}
+              </div>
               
               <div class="post-footer">
-                <span class="post-tag">{{ event.tag }}</span>
+                <span class="post-tag">{{ event.category }}</span>
                 <div class="post-stats">
                   <div class="stat">
-                    <span class="icon icon-eye"></span>
-                    <span>{{ event.views }}</span>
-                  </div>
-                  <div class="stat">
                     <span class="icon icon-message"></span>
-                    <span>{{ event.comments }}</span>
+                    <span>{{ event.comments|default(0) }}</span>
                   </div>
                   <div class="stat">
                     <span class="icon icon-arrow-up"></span>
-                    <span>{{ event.votes }}</span>
+                    <span>{{ event.comments_count|default(0) }}</span>
                   </div>
                 </div>
               </div>
@@ -184,23 +186,7 @@
   </div>
 
   <!-- Script -->
-  <script src="/src/js/auth.js"></script>
-  <script src="/src/js/header.js"></script>
-  <script>
-    // Minimal JavaScript for event clicking
-    document.addEventListener('DOMContentLoaded', function() {
-      // Make events clickable to view details
-      document.querySelectorAll('.post').forEach(post => {
-        post.addEventListener('click', function(e) {
-          if (e.target.closest('button') || e.target.closest('.post-stats')) {
-            return;
-          }
-          
-          const eventId = this.dataset.id;
-          window.location.href = `/events/view_event/${eventId}`;
-        });
-      });
-    });
-  </script>
+  <script type="module" src="/src/js/header.js"></script>
+  <script type="module" src="/src/js/forum-events-code.js"></script>
 </body>
 </html>

@@ -2,13 +2,13 @@ import {formatEventDates} from './utils/post-format-utils.js';
 import {adjustUserEventsLink} from './user-events-link.js';
 import {getAuthToken} from './utils/auth-utils.js';
 import {loadEventComments} from './event-comments.js'
+import { createToast} from './utils/toast-utils.js';
 
 document.addEventListener('DOMContentLoaded', function() {
   formatEventDates();
   setupEventListeners();
   adjustUserEventsLink();
   checkRegistrationStatus();
-  loadEventComments();
 });
 
 async function checkRegistrationStatus() {
@@ -66,12 +66,16 @@ async function toggleRegistration(eventId, token) {
     
     if (response.ok) {
       updateRegistrationUI(!isRegistered);
+      const action = isRegistered ? 'cancelled' : 'completed';
+      createToast(`Registration ${action} successfully`, 'success', 3000);
     } else {
       const errorData = await response.json();
       console.error('Error updating registration:', errorData);
+      createToast('Failed to update registration', 'error', 3000);
     }
   } catch (error) {
     console.error('Error updating registration:', error);
+    createToast('Failed to update registration', 'error', 3000);
   }
 }
 
@@ -117,12 +121,16 @@ async function toggleVote(eventId, token) {
     if (response.ok) {
       const data = await response.json();
       updateVoteUI(data.vote_count, data.has_voted);
+      const action = isVoted ? 'removed' : 'added';
+      createToast(`Vote ${action} successfully`, 'success', 3000);
     } else {
       const errorData = await response.json();
       console.error('Error updating vote:', errorData);
+      createToast('Failed to update vote', 'error', 3000);
     }
   } catch (error) {
     console.error('Error updating vote:', error);
+    createToast('Failed to update vote', 'error', 3000);
   }
 }
 
@@ -132,6 +140,7 @@ function setupEventListeners() {
     voteButton.addEventListener('click', async function() {
       const token = getAuthToken();
       if (!token) {
+        createToast('Please log in to vote for this event', 'warning', 5000);
         return;
       }
       
@@ -146,6 +155,7 @@ function setupEventListeners() {
     joinEventButton.addEventListener('click', async function() {
       const token = getAuthToken();
       if (!token) {
+        createToast('Please log in to register for this event', 'warning', 5000);
         return;
       }
       
@@ -155,5 +165,4 @@ function setupEventListeners() {
       await toggleRegistration(eventId, token);
     });
   }
-
 }

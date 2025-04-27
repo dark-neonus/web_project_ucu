@@ -10,6 +10,10 @@
     padding: var(--space-lg);
     width: 100%;
   }
+
+  .search-container {
+    display: none;
+  }
   
   .form-title {
     font-size: var(--font-2xl);

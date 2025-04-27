@@ -94,7 +94,7 @@ export function createToast(message, type = 'error', options = {}) {
   const toast = document.createElement('div');
   toast.className = `toast-notification toast-${type}`;
   toast.innerHTML = createToastHTML(message, type, actions);
-  document.body.appendChild(toast);
+  document.body.prepend(toast);
 
   toast.querySelector('.toast-close').addEventListener('click', () => dismissToast(toast));
 

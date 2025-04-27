@@ -18,5 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const eventId = postElement.dataset.id;
     window.location.href = `/events/view_event/${eventId}`;
   });
+
+  
   
 });

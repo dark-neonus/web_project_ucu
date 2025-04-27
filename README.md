@@ -1,4 +1,6 @@
 # Tribuna
+![image](https://github.com/user-attachments/assets/1ff5447e-d3b9-46d9-869a-834a88d44a3a)
+
 
 A web application built with FastAPI for managing university campus events, featuring user authentication, event creation, voting, registration, and forum discussions.
 

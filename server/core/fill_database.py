@@ -50,20 +50,6 @@ def fill_db():
             bio="Graphic designer and web developer with 5 years of experience. Creates beautiful UIs."
         ),
         User(
-            first_name="Daryna",
-            last_name="Nechyporuk",
-            email="daryna@gmail.com",
-            hashed_password=hash_password('1234'),
-            bio="Psychology student and volunteer. Organizes mental health workshops for veterans."
-        ),
-        User(
-            first_name="Olesia",
-            last_name="Karpina",
-            email="olesia@gmail.com",
-            hashed_password=hash_password('1234'),
-            bio="Teacher at local school. Passionate about educational reform and modern teaching methods."
-        ),
-        User(
             first_name="Козак",
             last_name="Васильович",
             email="kozak@gmail.com",
@@ -182,7 +168,7 @@ def fill_db():
             """,
             date_scheduled=datetime.datetime(2025, 5, 14, 17, 30),
             category=EventCategory.HEALTH,
-            author_id=users[2].id,
+            author_id=users[0].id,  # Changed from users[2] (Daryna) to users[0] (Nazar)
             location="UCU Campus, Kozelnytska Street 2a",
             status=EventStatus.OPEN,
             votes=0
@@ -202,7 +188,7 @@ def fill_db():
             """,
             date_scheduled=datetime.datetime(2025, 6, 20, 10, 0),
             category=EventCategory.EMPLOYMENT,
-            author_id=users[3].id,
+            author_id=users[1].id,  # Changed from users[3] (Olesia) to users[1] (Roman)
             location="Lviv Polytechnic National University, Main Hall",
             status=EventStatus.OPEN,
             votes=0
@@ -223,7 +209,7 @@ def fill_db():
             """,
             date_scheduled=datetime.datetime(2025, 8, 5, 11, 0),
             category=EventCategory.ENTERTAINING,
-            author_id=users[4].id,
+            author_id=users[2].id,  # This index is now Козак (was users[4] before removal)
             location="Rynok Square, near City Hall",
             status=EventStatus.OPEN,
             votes=0
@@ -244,7 +230,7 @@ def fill_db():
             """,
             date_scheduled=datetime.datetime(2025, 5, 25, 9, 0),
             category=EventCategory.SUPPORT,
-            author_id=users[5].id,
+            author_id=users[3].id,  # This index is now Maria (was users[5] before removal)
             location="Stryiskyi Park, Main Entrance",
             status=EventStatus.OPEN,
             votes=0
@@ -265,7 +251,7 @@ def fill_db():
             """,
             date_scheduled=datetime.datetime(2025, 9, 12, 18, 0),
             category=EventCategory.OTHER,
-            author_id=users[6].id,
+            author_id=users[4].id,  # This index is now Oleh (was users[6] before removal)
             location="Startup Depot, Vesela Street 5",
             status=EventStatus.OPEN,
             votes=0

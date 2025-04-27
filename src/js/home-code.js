@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const calculateButton = document.getElementById('calculate-factorial');
     const factorialResult = document.getElementById('factorial-result');
     const factorialError = document.getElementById('factorial-error');
+    const easterEgg = document.querySelector('.easter-egg');
     
     let maxFactorial = -1;
 
@@ -84,6 +85,41 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Error calculating factorial:', error);
       }
     }
+
+    // Easter egg zoom detection
+    function checkZoomLevel() {
+        // Method 1: Using devicePixelRatio (works better in some browsers)
+        const browserZoomLevel = Math.round(window.devicePixelRatio * 100);
+        
+        // Method 2: Using window dimensions (works better in other browsers)
+        const zoomLevel = Math.round((window.outerWidth / window.innerWidth) * 100);
+        
+        // Method 3: Visual viewport (more modern approach)
+        const visualViewport = window.visualViewport ? 
+            Math.round((window.visualViewport.width / document.documentElement.clientWidth) * 100) : 100;
+        
+        // For debugging
+        console.log(`Zoom detection: Method 1: ${browserZoomLevel}%, Method 2: ${zoomLevel}%, Method 3: ${visualViewport}%`);
+        
+        // Show easter egg when zoomed out significantly (using any method)
+        // Note: "Zoomed out to 25%" often registers as values around 25-33% depending on the browser
+        if (browserZoomLevel <= 33 || zoomLevel <= 33 || visualViewport <= 33) {
+            easterEgg.style.display = 'block';
+            console.log("Easter egg visible!");
+        } else {
+            easterEgg.style.display = 'none';
+        }
+    }
+
+    // Listen for window resize events (which happen during zoom)
+    window.addEventListener('resize', checkZoomLevel);
+    
+    // Make sure the easter egg is checked on load and on scroll
+    window.addEventListener('scroll', checkZoomLevel);
+    document.addEventListener('wheel', checkZoomLevel);
+
+    // Initial check
+    checkZoomLevel();
 
     // Setup factorial calculator
     if (calculateButton) {

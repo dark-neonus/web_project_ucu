@@ -1003,10 +1003,6 @@ header {
     font-weight: 400;
   }
 
-  .header-container {
-    padding: 0;
-  }
-
   .icon-login, .icon-register {
     display: none;
   }

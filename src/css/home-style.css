@@ -117,3 +117,9 @@ footer {
     max-width: var(--max-content-width);
     margin: 0 auto;
 }
+
+@media screen and (max-width: 1010px) {
+    .header-container {
+      padding: 0;
+    }
+}

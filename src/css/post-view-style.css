@@ -24,6 +24,10 @@
   overflow: hidden;
 }
 
+.search-container {
+  display: none;
+}
+
 .post-container:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
@@ -692,7 +696,6 @@
 }
 
 .icon {
-  display: block;
   width: 16px;
   height: 16px;
   line-height: 1;
@@ -909,6 +912,10 @@
     padding: var(--space-sm);
   }
   
+  .header-container {
+    padding: 0;
+  }
+
   .post-container {
     padding: var(--space-md);
   }

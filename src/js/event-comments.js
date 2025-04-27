@@ -100,34 +100,48 @@
     }
   }
 
-  async function loadEventComments() {
+  function loadEventComments() {
     const commentsContainer = document.getElementById('comments-container');
     const eventId = getEventIdFromUrl();
     
     if (!eventId || !commentsContainer) return;
     
+    commentsContainer.innerHTML = '';
+    
+    commentsContainer.innerHTML = '<div class="loading-comments">Loading comments...</div>';
+    
     try {
-      const response = await fetch(`/events/${eventId}/comments`);
-      
-      if (response.ok) {
-        const data = await response.json();
-        renderComments(data.comments);
-        
-        updateCommentCount(data.comments.length);
-        
-        setupCommentFormListeners();
-      } else {
-        commentsContainer.innerHTML = '<div class="error-message">Failed to load comments</div>';
-        createToast('Failed to load comments', 'error');
-      }
+        fetch(`/events/${eventId}/comments`)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    commentsContainer.innerHTML = '<div class="error-message">Failed to load comments</div>';
+                    createToast('Failed to load comments', 'error');
+                    throw new Error('Failed to load comments');
+                }
+            })
+            .then(data => {
+                commentsContainer.innerHTML = '';
+                renderComments(data.comments);
+                
+                updateCommentCount(data.comments.length);
+                
+                setupCommentFormListeners();
+            })
+            .catch(error => {
+                console.error('Error loading comments:', error);
+                commentsContainer.innerHTML = '<div class="error-message">Failed to load comments</div>';
+                createToast('Error loading comments: ' + error.message, 'error');
+            });
     } catch (error) {
-      console.error('Error loading comments:', error);
-      commentsContainer.innerHTML = '<div class="error-message">Failed to load comments</div>';
-      createToast('Error loading comments: ' + error.message, 'error');
+        console.error('Error loading comments:', error);
+        commentsContainer.innerHTML = '<div class="error-message">Failed to load comments</div>';
+        createToast('Error loading comments: ' + error.message, 'error');
     }
-  }
+}
 
-  async function renderComments(comments) {
+  function renderComments(comments) {
     const commentsContainer = document.getElementById('comments-container');
     
     if (!commentsContainer) return;
@@ -139,16 +153,15 @@
     
     const sortedComments = sortCommentsByDate(comments, 'desc');
     
-    commentsContainer.innerHTML = '';
-    
-    const currentUserId = await getUserId();
-    
-    for (const comment of sortedComments) {
-      const commentElement = await createCommentElement(comment, currentUserId);
-      commentsContainer.appendChild(commentElement);
-    }
-    
-    addSortingControls(commentsContainer, comments);
+    getUserId().then(currentUserId => {
+      for (const comment of sortedComments) {
+        createCommentElement(comment, currentUserId).then(commentElement => {
+          commentsContainer.appendChild(commentElement);
+        });
+      }
+      
+      addSortingControls(commentsContainer, comments);
+    });
   }
 
   function addSortingControls(container, comments) {
@@ -175,28 +188,28 @@
     });
 }
 
-  function updateCommentOrder(sortedComments) {
-    const commentsContainer = document.getElementById('comments-container');
+function updateCommentOrder(sortedComments) {
+  const commentsContainer = document.getElementById('comments-container');
+  
+  const existingSortingControls = document.querySelector('.comments-sorting');
+  
+  commentsContainer.innerHTML = '';
+  
+  if (existingSortingControls) {
+    commentsContainer.appendChild(existingSortingControls);
+  }
+  
+  sortedComments.forEach(async (comment) => {
+    const currentUserId = document.body.getAttribute('data-user-id') || await getUserId();
     
-    const existingSortingControls = document.querySelector('.comments-sorting');
+    const commentElement = await createCommentElement(comment, currentUserId);
+    commentsContainer.appendChild(commentElement);
     
-    commentsContainer.innerHTML = '';
-    
-    if (existingSortingControls) {
-        commentsContainer.appendChild(existingSortingControls);
-    }
-    
-    sortedComments.forEach(async (comment) => {
-        const currentUserId = document.body.getAttribute('data-user-id') || await getUserId();
-        
-        const commentElement = await createCommentElement(comment, currentUserId);
-        commentsContainer.appendChild(commentElement);
-        
-        addCommentActionListeners(commentElement, comment);
-    });
+    addCommentActionListeners(commentElement, comment);
+  });
 }
 
-  function createCommentElement(comment, currentUserId) {
+  async function createCommentElement(comment, currentUserId) {
     const commentDiv = document.createElement('div');
     commentDiv.className = 'comment';
     commentDiv.setAttribute('data-comment-id', comment.id);
@@ -406,6 +419,14 @@
       if (response.ok) {
         const data = await response.json();
         createToast('Comment updated successfully', 'success');
+        
+        const commentContentElement = document.querySelector(`.comment[data-comment-id="${commentId}"] .comment-content p`);
+        if (commentContentElement) {
+          commentContentElement.innerHTML = sanitizeCommentContent(validation.content);
+        } else {
+          loadEventComments();
+        }
+        
         return data;
       } else {
         try {
@@ -694,7 +715,10 @@
       if (response.ok) {
         const data = await response.json();
         createToast('Comment posted successfully', 'success', { autoDismiss: 3000 });
-        updateCommentCount((parseInt(document.querySelector('.post-stats .stat:first-child span:last-child')?.textContent) || 0) + 1);
+        
+        const currentCount = parseInt(document.querySelector('.post-stats .stat:first-child span:last-child')?.textContent) || 0;
+        updateCommentCount(currentCount + 1);
+        
         return data;
       } else {
         const errorData = await response.json();

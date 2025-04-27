@@ -1,4 +1,5 @@
 import { RateLimit } from "./rate-limit-utils.js";
+import { createToast } from './toast-utils.js';
 
 export function fetchWithAuth(url, options = {}) {
   const token = localStorage.getItem("access_token");
@@ -70,7 +71,6 @@ export async function getUserId() {
   const token = localStorage.getItem('access_token');
   
   if (!token) {
-    createToast('No access token found. Please log in.', 'error');
     throw new Error('No access token found. User must be logged in.');
   }
   

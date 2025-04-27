@@ -1,4 +1,4 @@
-# Campus Event Hub
+# Tribuna
 
 A web application built with FastAPI for managing university campus events, featuring user authentication, event creation, voting, registration, and forum discussions.
 

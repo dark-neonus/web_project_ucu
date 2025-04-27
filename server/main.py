@@ -10,7 +10,7 @@ from pathlib import Path
 # Third-party imports
 from apscheduler.schedulers.background import BackgroundScheduler
 import apscheduler.events
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -22,6 +22,7 @@ from server.apps.events.routes import router as events_router, configure_app_wit
 from server.apps.forum.routes import router as forum_router
 from server.core.database import create_db_and_tables, drop_db_and_tables, engine
 from server.core.fill_database import fill_db
+from server.core.get_factorial import get_factorial, get_max_factorial_idx
 
 
 def lifespan(app_instance: FastAPI):
@@ -91,6 +92,35 @@ def home_page():
         html_content = html_file_path.read_text(encoding="utf-8")
         return HTMLResponse(content=html_content)
     return HTMLResponse(content="<h1>Home page not found</h1>", status_code=404)
+
+
+@app.get("/api/factorial/{n}")
+async def factorial_endpoint(n: int):
+    """
+    API endpoint to calculate factorial of a given number.
+    Uses pre-calculated factorials for efficiency.
+    """
+    if n < 0:
+        raise HTTPException(status_code=400, detail="Factorial is not defined for negative numbers")
+    
+    max_idx = get_max_factorial_idx()
+    if n > max_idx + 1:
+        raise HTTPException(status_code=400, detail=f"Maximum available factorial is {max_idx + 1}")
+    
+    result = get_factorial(n)
+    if result is None:
+        raise HTTPException(status_code=500, detail="Failed to calculate factorial")
+        
+    return {"result": str(result)}
+
+
+@app.get("/api/max_factorial")
+async def max_factorial_endpoint():
+    """
+    API endpoint to get the maximum available pre-calculated factorial.
+    """
+    max_idx = get_max_factorial_idx()
+    return {"max_factorial": max_idx}
 
 
 @app.on_event("startup")

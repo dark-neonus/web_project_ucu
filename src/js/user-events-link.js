@@ -1,13 +1,7 @@
-import { getUserId } from './utils/auth-utils.js';
+import { getUserId, isAuthenticated } from './utils/auth-utils.js';
+import { createToast } from './utils/toast-utils.js';
 
 export async function adjustUserEventsLink() {
-  const currentUserId = await getUserId();
-  
-  if (!currentUserId) {
-    console.warn("Cannot adjust user_events link: User ID not found");
-    return;
-  }
-
   const userEventLink = document.getElementById('user-events-link');
   
   if (!userEventLink) {
@@ -15,17 +9,38 @@ export async function adjustUserEventsLink() {
     return;
   }
   
-  const baseUrl = `/events/user_events/${currentUserId}`;
+  const isLoggedIn = isAuthenticated();
+  let currentUserId;
   
-  userEventLink.dataset.url = baseUrl;
+  if (isLoggedIn) {
+    try {
+      currentUserId = await getUserId();
+    } catch (error) {
+      console.warn("Error fetching user ID:", error);
+    }
+  }
   
   if (!userEventLink.hasAttribute('data-click-handler-added')) {
-    userEventLink.addEventListener('click', function() {
+    userEventLink.addEventListener('click', function(event) {
+      if (!isAuthenticated()) {
+        event.preventDefault();
+        createToast('You need to log in to view your events', 'warning', 3000);
+        return;
+      }
+      
       window.location.href = this.dataset.url;
     });
     userEventLink.setAttribute('data-click-handler-added', 'true');
   }
+  
+  if (!currentUserId) {
+    console.warn("Cannot fully adjust user_events link: User ID not found or user not logged in");
+    return;
+  }
 
+  const baseUrl = `/events/user_events/${currentUserId}`;
+  userEventLink.dataset.url = baseUrl;
+  
   if (userEventLink.dataset.userId) {
     userEventLink.dataset.userId = currentUserId;
   }

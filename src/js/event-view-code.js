@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
   setupEventListeners();
   adjustUserEventsLink();
   checkRegistrationStatus();
+  checkVoteStatus();
 });
 
 async function checkRegistrationStatus() {
@@ -32,6 +33,30 @@ async function checkRegistrationStatus() {
     }
   } catch (error) {
     console.error('Error checking registration status:', error);
+  }
+}
+
+async function checkVoteStatus() {
+  const eventId = getEventIdFromUrl();
+  if (!eventId) return;
+  
+  const token = getAuthToken();
+  if (!token) return;
+  
+  try {
+    const response = await fetch(`/events/vote/${eventId}/status`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      updateVoteUI(data.vote_count, data.has_voted);
+    }
+  } catch (error) {
+    console.error('Error checking vote status:', error);
   }
 }
 

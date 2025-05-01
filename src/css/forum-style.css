@@ -428,10 +428,6 @@ body {
     padding: var(--space-sm);
   }
   
-  .header-container {
-    justify-content: start;
-  }
-  
   .post-header {
     margin-bottom: var(--space-sm);
   }
@@ -469,5 +465,12 @@ body {
   
   .post-tag {
     order: 2;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .header-container {
+    justify-content: start;
+    gap: 100px;
   }
 }

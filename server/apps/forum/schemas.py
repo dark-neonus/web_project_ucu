@@ -87,3 +87,19 @@ class Suggestion(SuggestionBase):
 class LikeCreate(BaseModel):
     question_id: Optional[int] = None
     answer_id: Optional[int] = None
+
+class CommentBase(BaseModel):
+    content: str
+
+class CommentCreate(CommentBase):
+    post_id: int
+
+class Comment(CommentBase):
+    id: int
+    created_at: datetime
+    user_id: int
+    post_id: int
+    username: Optional[str] = None
+    
+    class Config:
+        from_attributes = True

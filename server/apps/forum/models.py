@@ -46,6 +46,8 @@ class Post(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     user: Optional[User] = Relationship(back_populates="posts")
+    comments: List[Comment] = Relationship(back_populates="post")
+    likes: List[Like] = Relationship()
 
 class Suggestion(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -53,3 +55,25 @@ class Suggestion(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     user_id: int = Field(foreign_key="user.id")
     question_id: int = Field(foreign_key="question.id")
+
+
+class Comment(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    content: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    user_id: int = Field(foreign_key="user.id")
+    post_id: int = Field(foreign_key="post.id")
+    user: Optional[User] = Relationship(back_populates="comments")
+    post: Optional[Post] = Relationship(back_populates="comments")
+
+class Like(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    post_id: Optional[int] = Field(default=None, foreign_key="post.id")
+    question_id: Optional[int] = Field(default=None, foreign_key="question.id")
+    answer_id: Optional[int] = Field(default=None, foreign_key="answer.id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    user: Optional[User] = Relationship()
+    post: Optional[Post] = Relationship()
+    question: Optional[Question] = Relationship()
+    answer: Optional[Answer] = Relationship()

@@ -2,10 +2,9 @@ from fastapi import APIRouter, HTTPException, Depends, Path, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from pathlib import Path as FilePath
-from server.apps.forum.models import Post
+from server.apps.forum.models import Post, Comment, Like, Question, Answer
 from server.core.database import get_db
 from server.core.security import get_current_user
-from server.apps.forum.models import Post, Comment, Like, Question, Answer
 from server.apps.forum.schemas import CommentBase, CommentCreate, Comment as CommentSchema
 
 
